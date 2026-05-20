@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>樂活 AI 復康助手 - 八段錦 32 步長者流暢版</title>
+    <title>樂活 AI 復康助手 - 八段錦 32 招完美連擊版</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
@@ -56,6 +56,7 @@
         .dot.active { background: #e67e22; transform: scale(1.15); box-shadow: 0 0 8px rgba(230,126,34,0.5); }
         .dot.completed { background: #2980b9; }
 
+        /* 主畫面佈局 */
         .main-layout {
             display: flex;
             flex-direction: row;
@@ -104,8 +105,15 @@
         .instruction-card {
             background-color: #fdf6e2; border-left: 5px solid #f39c12;
             padding: 12px; border-radius: 4px; margin: 10px 0; min-height: 90px;
+            transition: background-color 0.3s;
+        }
+        /* 停下休整狀態下的指導卡片樣式 */
+        .instruction-card.rest-mode {
+            background-color: #d4edda;
+            border-left-color: #28a745;
         }
         .instruction-card h3 { margin: 0 0 5px 0; color: #d35400; font-size: 14px; }
+        .instruction-card.rest-mode h3 { color: #155724; }
         .instruction-card p { margin: 0; font-size: 14px; line-height: 1.4; font-weight: bold; color: #2c3e50; white-space: pre-line; }
 
         .metric-item { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
@@ -127,14 +135,14 @@
 <body>
 
     <h1>樂活 AI 復康運動助手</h1>
-    <div class="subtitle">傳統八段錦【32 微動作高容錯流暢防卡關版】</div>
+    <div class="subtitle">八段錦 32 招【三擊解鎖・安全過渡不閃退版】</div>
 
     <div class="stage-selector">
         <div class="nav-row">
-            <button class="ctrl-btn" onclick="jumpStep(-1)">◀ 上一步</button>
+            <button class="ctrl-btn" onclick="manualJump(-1)">◀ 上一步</button>
             <button class="ctrl-btn audio-toggle-btn" id="audio-init-btn" onclick="initAudioSystem()">🎵 開啟音樂與音效</button>
             <div style="font-weight: bold; font-size: 16px; display: flex; align-items: center;" id="global-progress-text">關卡進度: 1 / 32</div>
-            <button class="ctrl-btn" onclick="jumpStep(1)">下一步 ▶</button>
+            <button class="ctrl-btn" onclick="manualJump(1)">下一步 ▶</button>
         </div>
         <div class="step-dots" id="dots-container"></div>
     </div>
@@ -167,14 +175,14 @@
             <div>
                 <div class="status-badge" id="main-badge">第一式</div>
                 <div class="benefit-badge" id="benefit-text">好處：加載中...</div>
-                <div class="instruction-card">
-                    <h3>【當前口訣與動作】</h3>
+                <div class="instruction-card" id="target-card">
+                    <h3 id="card-header">【當前口訣與動作】</h3>
                     <p id="instruction-text">加載中...</p>
                 </div>
                 <div class="metrics">
                     <div class="metric-item"><span id="lbl-a">指標 A：</span><span class="metric-value" id="val-a">-</span></div>
                     <div class="metric-item"><span id="lbl-b">指標 B：</span><span class="metric-value" id="val-b">0°</span></div>
-                    <div class="metric-item"><span>鎖定制動時間：</span><span id="target-count" style="font-weight:bold; color:#2980b9;">0 / 1.5 秒</span></div>
+                    <div class="metric-item"><span>本招重複進度：</span><span id="target-count" style="font-weight:bold; color:#2980b9;">第 0 / 3 次</span></div>
                     <div class="progress-container"><div class="progress-bar" id="action-progress"></div></div>
                 </div>
             </div>
@@ -190,28 +198,28 @@
         function initAudioSystem() {
             if (audioCtx) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            bgmGain = audioCtx.createGain(); bgmGain.gain.setValueAtTime(0.06, audioCtx.currentTime); bgmGain.connect(audioCtx.destination);
+            bgmGain = audioCtx.createGain(); bgmGain.gain.setValueAtTime(0.05, audioCtx.currentTime); bgmGain.connect(audioCtx.destination);
             bgmOscillator = audioCtx.createOscillator(); bgmOscillator.type = 'triangle'; bgmOscillator.frequency.setValueAtTime(146.83, audioCtx.currentTime); bgmOscillator.connect(bgmGain); bgmOscillator.start();
             const audioBtn = document.getElementById('audio-init-btn'); audioBtn.innerText = "🎵 音樂播音中"; audioBtn.style.backgroundColor = "#2980b9"; audioBtn.style.animation = "none";
         }
         function playHoldTickSound(p) {
             if (!audioCtx) return;
             let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(400 + (p * 4), audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.03, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(350 + (p * 4), audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.08);
         }
         function playPerfectBellSound() {
             if (!audioCtx) return; const now = audioCtx.currentTime;
             [523.25, 783.99, 1046.50].forEach((f, idx) => {
                 let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
                 osc.type = 'sine'; osc.frequency.setValueAtTime(f, now);
-                gain.gain.setValueAtTime(idx === 0 ? 0.2 : 0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(now + 1.2);
+                gain.gain.setValueAtTime(idx === 0 ? 0.15 : 0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(now + 1.0);
             });
         }
 
-        // --- 核心動態示範數學插值引擎 ---
+        // --- 核心動態示範插值引擎 ---
         let animFrameId = null; let animTime = 0;
         function lerp(start, end, amt){ return (1 - amt) * start + amt * end; }
 
@@ -223,9 +231,9 @@
                 animTime += 0.02; 
                 let t = (Math.sin(animTime - Math.PI / 2) + 1) / 2; 
 
-                // 加上防呆防呆保護，避免資料格式未讀取時出錯
-                const startPose = initFrameFn ? initFrameFn() : { arm:[75,120,70,165,125,120,130,165], leg:[80,210,75,270,120,210,125,270], body:[100,50,100,100,160] };
-                const endPose = targetFrameFn ? targetFrameFn() : startPose;
+                // 🌟 安全防空指針機制：如果載入未完成，預設給予基本站立數據，杜絕閃退
+                const startPose = (initFrameFn && typeof initFrameFn === 'function') ? initFrameFn() : { arm:[75,120,70,165,125,120,130,165], leg:[80,210,75,270,120,210,125,270], body:[100,50,100,100,160] };
+                const endPose = (targetFrameFn && typeof targetFrameFn === 'function') ? targetFrameFn() : startPose;
 
                 let currentArm = {
                     x11: lerp(startPose.arm[0], endPose.arm[0], t), y11: lerp(startPose.arm[1], endPose.arm[1], t),
@@ -244,10 +252,7 @@
                     bx1: lerp(startPose.body[2], endPose.body[2], t), bx2: lerp(startPose.body[3], endPose.body[3], t), by2: lerp(startPose.body[4], endPose.body[4], t)
                 };
 
-                applyArmPoints(currentArm);
-                applyLegPoints(currentLeg);
-                applyBodyPoints(currentBody);
-
+                applyArmPoints(currentArm); applyLegPoints(currentLeg); applyBodyPoints(currentBody);
                 animFrameId = requestAnimationFrame(renderLoop);
             }
             renderLoop();
@@ -274,7 +279,7 @@
             document.getElementById('demo-body').setAttribute("x1", p.bx1); document.getElementById('demo-body').setAttribute("x2", p.bx2); document.getElementById('demo-body').setAttribute("y2", p.by2);
         }
 
-        // --- 修正、補全並對齊後的 32 微動作完整大資料庫 ---
+        // --- 全套 32 微動作高安全結構化資料庫 ---
         const ALL_32_STEPS = [];
         const BASE_ARM = [75,120,70,165, 125,120,130,165];
         const BASE_LEG = [80,210,75,270, 120,210,125,270];
@@ -290,7 +295,7 @@
                     {口訣:"翻掌朝天向上拉", 動作:"在胸前翻掌向上托起，手臂向上推伸。", 指標A:"手腕超越肩膀", 指標B:"手肘伸展角度", 提示:"雙手向上前方推高。",
                      init: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:BASE_LEG, body:BASE_BODY }),
                      target: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:BASE_LEG, body:BASE_BODY })},
-                    {口訣:"提踵仰頭望手背", 動作:"手臂儘量打直，抬頭看手背，腳後跟微提。", 指標A:"仰頭/提踵狀態", 指標B:"手肘高舉程度", 提示:"長者友善判定：手肘高舉微曲(>130°)即可解鎖通關！",
+                    {口訣:"提踵仰頭望手背", 動作:"手臂儘量打直，抬頭看手背，腳後跟微提。", 指標A:"仰頭/提踵狀態", 指標B:"手肘高舉程度", 提示:"長者友善判定：手肘高舉微曲(>130°)即可通關！",
                      init: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:BASE_LEG, body:BASE_BODY }),
                      target: () => ({ arm:[80,40,80,5, 120,40,120,5], leg:[80,200,75,260, 120,200,125,260], body:[100,45,100,100,150] })},
                     {口訣:"調理三焦氣機通", 動作:"雙手分開，從兩側緩緩劃圈落下還原。", 指標A:"手腕橫向外展", 指標B:"雙手降回兩側", 提示:"雙臂向身體兩側弧形垂下。",
@@ -319,14 +324,14 @@
 
         const EXT_DATA = [
             { title:"第三式：調理脾胃須單舉", benefit:"牽動腹腔，按摩脾胃。", steps:[{k:"一手頂天一手按",d:"左手翻掌上舉，右手下按雙向對沖。"},{k:"指尖對應力對沖",d:"雙掌用力對拉，左手肘儘量挺直。"},{k:"右升左降交替練",d:"雙手交替在胸前抱球過渡，準備換邊。"},{k:"調理脾胃效無窮",d:"換右手一側上舉，左手下按動作。"}] },
-            { title:"第四式：五勞七傷往後瞧", benefit:"放鬆頸椎，舒緩雙肩疲勞。", steps:[{k:"轉頭扭頸後方瞧",d:"身體直立，頭緩緩向左後方轉動眼看後方。"},{k:"轉臂旋腕莫動搖",d:"雙臂向外旋轉，拉開肩胸經絡。"},{k:"舒緩經絡除疲勞",d:"保持向後瞧姿勢定格，深度呼吸放鬆。"},{k:"五勞七傷一併消",d:"頭部與雙臂旋回前方，上身正中放鬆。"}] },
-            { title:"第五式：搖頭擺尾去心火", benefit:"活動脊椎下引心火。", steps:[{k:"馬步寬大雙手按",d:"邁大馬步下蹲，雙手虎口扶在膝蓋上。"},{k:"搖頭晃身尾閭擺",d:"身體前傾，頭向左前方搖晃微旋。"},{k:"降火滋陰通經脈",d:"臀部尾閭向右擺，脊椎流暢扭動. 。"},{k:"心清氣爽身自在",d:"起立回正，雙腳收回恢復基本站姿。"}] },
+            { title:"第四式：五勞七傷往後瞧", benefit:"放鬆頸椎，舒緩雙肩疲勞。", steps:[{k:"轉頭扭頸後方瞧",d:"身體直立，頭緩緩向左後方轉動眼看後方. 。"},{k:"轉臂旋腕莫動搖",d:"雙臂向外旋轉，拉開肩胸經絡。"},{k:"舒緩經絡除疲勞",d:"保持向後瞧姿勢定格，深度呼吸放鬆。"},{k:"五勞七傷一併消",d:"頭部與雙臂旋回前方，上身正中放鬆。"}] },
+            { title:"第五式：搖頭擺尾去心火", benefit:"活動脊椎下引心火。", steps:[{k:"馬步寬大雙手按",d:"邁大馬步下蹲，雙手虎口扶在膝蓋上。"},{k:"搖頭晃身尾閭擺",d:"身體前傾，頭向左前方搖晃微旋。"},{k:"降火滋陰通經脈",d:"臀部尾閭向右擺，脊椎流暢扭動。"},{k:"心清氣爽身自在",d:"起立回正，雙腳收回恢復基本站姿。"}] },
             { title:"第六式：兩手攀足固腎腰", benefit:"強壯腰膝、固攝腎氣。", steps:[{k:"雙手反拉貼背下",d:"雙手高舉後貼著後背臀部向下摩運。"},{k:"沿腿向下攀足尖",d:"前屈折疊，雙手順大腿後側向下攀足尖。"},{k:"挺胸直脊引氣血",d:"雙手攀足尖，雙腿保持直立拉伸。"},{k:"固腎壯腰身手健",d:"緩緩直立起身，恢復正中站姿。"}] },
-            { title:"第七式：攢拳怒目增氣力", benefit:"舒肝理氣、增長金剛力。", steps:[{k:"馬步穩扎出拳快",d:"扎穩馬步，左拳向前緩緩猛烈衝出。"},{k:"瞪眼怒目氣力增",d:"雙眼睜大，怒目凝視前方。"},{k:"抓握有力收拳穩",d:"左手變掌抓拳收回，換右拳衝出. 。"},{k:"疏肝理氣顯神威",d:"收拳起立回正，全身放鬆。"}] },
+            { title:"第七式：攢拳怒目增氣力", benefit:"舒肝理氣、增長金剛力。", steps:[{k:"馬步穩扎出拳快",d:"扎穩馬步，左拳向前緩緩猛烈衝出。"},{k:"瞪眼怒目氣力增",d:"雙眼睜大，怒目凝視前方。"},{k:"抓握有力收拳穩",d:"左手變掌抓拳收回，換右拳衝出。"},{k:"疏肝理氣顯神威",d:"收拳起立回正，全身放鬆。"}] },
             { title:"第八式：背後七顛百病消", benefit:"震盪脊椎，消除百病。", steps:[{k:"腳跟提起莫動搖",d:"雙腳併攏，腳後跟緩緩提起提起抬高。"},{k:"百會上頂全身高",d:"百會穴上頂保持筆直平衡。"},{k:"輕輕落地震一下",d:"腳跟放鬆落地，使身體受到微小震動。"},{k:"全身放鬆百病消",d:"雙手重歸身側，放鬆收功。"}] }
         ];
 
-        // 扁平化整合
+        // 扁平化展開
         RAW_DATA.forEach((item, sIdx) => {
             item.steps.forEach((st, stepIdx) => {
                 ALL_32_STEPS.push({
@@ -343,7 +348,7 @@
                 ALL_32_STEPS.push({
                     globalIdx: ALL_32_STEPS.length, mainTitle: item.title, benefit: item.benefit,
                     badge: `第 ${realIdx+1} 式：微動作 ${stepIdx+1}/4`, desc: `【口訣】${st.k}\n【要領】${st.d}`,
-                    lblA: "左側關節高度", lblB: "右側關節高度", help: "高容錯保底：跟隨公仔動態節奏舒展即可解鎖！",
+                    lblA: "左手拉伸高度", lblB: "右手拉伸高度", help: "高容錯保底：跟隨公仔動態節奏舒展即可解鎖！",
                     init: () => ({ arm: BASE_ARM, leg: BASE_LEG, body: BASE_BODY }),
                     target: () => {
                         let armTemp = [...BASE_ARM];
@@ -359,32 +364,41 @@
 
         function buildDots() {
             const container = document.getElementById('dots-container');
-            if(!container) return;
-            container.innerHTML = "";
+            if(!container) return; container.innerHTML = "";
             for(let i=0; i<32; i++) {
-                let d = document.createElement('div');
-                d.className = "dot"; d.id = `dot-${i}`; d.innerText = i + 1; d.onclick = () => loadStep(i); container.appendChild(d);
+                let d = document.createElement('div'); d.className = "dot"; d.id = `dot-${i}`; d.innerText = i + 1; d.onclick = () => manualJumpToIdx(i); container.appendChild(d);
             }
         }
 
+        // --- 核心遊戲核心三大狀態機變數 ---
+        let currentGlobalIdx = 0;
+        let currentRepetition = 0;      // 🌟 當前單一微招式重複做幾次（0 ➔ 3）
+        let gameState = "TRAINING";      // 🌟 "TRAINING"（運動中） | "REST_LOCK"（做滿3次停下休整過渡期）
+        let isHolding = false;
+        let holdStartTime = 0;
+        const requiredHoldTime = 1500; 
+
         function loadStep(gIdx) {
             if (gIdx < 0 || gIdx >= ALL_32_STEPS.length) return;
-            currentGlobalIdx = gIdx; isHolding = false;
+            currentGlobalIdx = gIdx;
+            currentRepetition = 0; // 重設次數
+            gameState = "TRAINING"; // 恢復運動判定
+            isHolding = false;
             
-            const progressText = document.getElementById('global-progress-text');
-            if(progressText) progressText.innerText = `關卡進度: ${gIdx + 1} / 32`;
-            
-            const progressBar = document.getElementById('action-progress');
-            if(progressBar) progressBar.style.width = "0%";
+            // 恢復原本提示介面
+            document.getElementById('target-card').classList.remove('rest-mode');
+            document.getElementById('card-header').innerText = "【當前口訣與動作】";
+            document.getElementById('action-progress').style.width = "0%";
+            document.getElementById('global-progress-text').innerText = `關卡進度: ${gIdx + 1} / 32`;
             
             const cfg = ALL_32_STEPS[gIdx];
             document.getElementById('main-badge').innerText = cfg.mainTitle + " (" + cfg.badge + ")";
             document.getElementById('benefit-text').innerText = "好處：" + cfg.benefit;
             document.getElementById('instruction-text').innerText = cfg.desc;
-            document.getElementById('lbl-a').innerText = cfg.lblA; 
-            document.getElementById('lbl-b').innerText = cfg.lblB;
+            document.getElementById('lbl-a').innerText = cfg.lblA; document.getElementById('lbl-b').innerText = cfg.lblB;
             document.getElementById('help-desc').innerText = "動作對齊指南：" + cfg.help;
-            document.getElementById('target-count').innerText = `0 / 1.5 秒`;
+            document.getElementById('target-count').innerText = `第 0 / 3 次`;
+            document.getElementById('target-count').style.color = '#2980b9';
 
             for (let i = 0; i < 32; i++) {
                 const dot = document.getElementById(`dot-${i}`);
@@ -393,19 +407,30 @@
             startDemoAnimation(cfg.init, cfg.target);
         }
 
-        function jumpStep(dir) { let n = currentGlobalIdx + dir; if (n >= 0 && n < 32) loadStep(n); }
+        // 🌟 人為手動點擊按鈕跳轉（加入安全過渡鎖，避免異步閃退）
+        function manualJump(dir) {
+            let nextIdx = currentGlobalIdx + dir;
+            if (nextIdx >= 0 && nextIdx < 32) {
+                gameState = "REST_LOCK"; // 鎖死判定線
+                isHolding = false;
+                loadStep(nextIdx);
+            }
+        }
+        function manualJumpToIdx(targetIdx) {
+            if (targetIdx >= 0 && targetIdx < 32) {
+                gameState = "REST_LOCK";
+                isHolding = false;
+                loadStep(targetIdx);
+            }
+        }
+
         function calculateAngle(p1, p2, p3) {
             if(!p1 || !p2 || !p3) return 0;
             let radians = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
             let angle = Math.abs((radians * 180.0) / Math.PI); if (angle > 180.0) angle = 360 - angle; return angle;
         }
 
-        // --- AI 運動捕捉引擎 ---
-        let currentGlobalIdx = 0;
-        let isHolding = false;
-        let holdStartTime = 0;
-        const requiredHoldTime = 1500; 
-
+        // --- AI 運動捕捉引擎（防閃退高階重構） ---
         function onResults(results) {
             const loadingTag = document.getElementById('loading');
             if (loadingTag) loadingTag.style.display = 'none';
@@ -415,70 +440,95 @@
             canvasCtx.save(); canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-            if (results.poseLandmarks) {
-                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
-                drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#FF0000', lineWidth: 1, radius: 3 });
+            // 🌟 核心防空守護：如果沒抓到骨架或處於「停下正確過渡期」，直接渲染畫面但不執行切關邏輯，徹底阻斷閃退！
+            if (gameState === "REST_LOCK" || !results.poseLandmarks) {
+                canvasCtx.restore();
+                return;
+            }
 
-                const landmarks = results.poseLandmarks;
-                const leftShoulder = landmarks[11]; const rightShoulder = landmarks[12];
-                const leftElbow = landmarks[13];    const rightElbow = landmarks[14];
-                const leftWrist = landmarks[15];    const rightWrist = landmarks[16];
-                const leftHip = landmarks[23];
+            const landmarks = results.poseLandmarks;
+            drawConnectors(canvasCtx, landmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
+            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 3 });
 
-                let valA = "-"; let valB = "-"; let isStepPassed = false;
-                const cur = ALL_32_STEPS[currentGlobalIdx];
-                let angleL = calculateAngle(leftShoulder, leftElbow, leftWrist);
-                let angleR = calculateAngle(rightShoulder, rightElbow, rightWrist);
+            const leftShoulder = landmarks[11]; const rightShoulder = landmarks[12];
+            const leftElbow = landmarks[13];    const rightElbow = landmarks[14];
+            const leftWrist = landmarks[15];    const rightWrist = landmarks[16];
+            const leftHip = landmarks[23];
 
-                if (cur.mainIdx === 0) { 
-                    if (cur.subIdx === 0) { valA = "胸前就位"; valB = Math.round(Math.abs(leftWrist.x - rightWrist.x)*10); isStepPassed = (leftWrist.y > leftShoulder.y - 0.1); }
-                    if (cur.subIdx === 1) { valA = "托高之中"; valB = Math.round(angleL); isStepPassed = (angleL > 100); }
-                    if (cur.subIdx === 2) { valA = "高舉伸展"; valB = Math.round(angleL); isStepPassed = (angleL >= 130 && angleR >= 130); }
-                    if (cur.subIdx === 3) { valA = "兩側放鬆落"; valB = "重歸身側"; isStepPassed = (leftWrist.y > leftShoulder.y); }
-                } else if (cur.mainIdx === 1) { 
-                    if (cur.subIdx === 0) { valA = "準備下蹲"; valB = "雙手胸前交"; isStepPassed = true; } 
-                    if (cur.subIdx === 1 || cur.subIdx === 2) { valA = Math.round(angleL); valB = Math.round(angleR); isStepPassed = (angleL >= 125); }
-                    if (cur.subIdx === 3) { valA = "起立還原"; valB = "中正安舒"; isStepPassed = (leftWrist.y > leftShoulder.y); }
-                } else if (cur.mainIdx === 2) { 
-                    valA = Math.round(angleL); valB = Math.round(angleR);
-                    isStepPassed = (angleL >= 125 || angleR >= 125 || leftWrist.y < leftShoulder.y);
-                } else {
-                    valA = Math.round(angleL) + "°";
-                    valB = Math.round(angleR) + "°";
-                    isStepPassed = true; 
-                }
+            let valA = "-"; let valB = "-"; let isStepPassed = false;
+            const cur = ALL_32_STEPS[currentGlobalIdx];
+            
+            let angleL = calculateAngle(leftShoulder, leftElbow, leftWrist);
+            let angleR = calculateAngle(rightShoulder, rightElbow, rightWrist);
 
-                document.getElementById('val-a').innerText = typeof valA === 'number' ? valA + "°" : valA;
-                document.getElementById('val-b').innerText = typeof valB === 'number' ? valB + "°" : valB;
+            // 微動作的核心復康演算法映射
+            if (cur.mainIdx === 0) { 
+                if (cur.subIdx === 0) { valA = "胸前就位"; valB = Math.round(Math.abs(leftWrist.x - rightWrist.x)*10); isStepPassed = (leftWrist.y > leftShoulder.y - 0.1); }
+                if (cur.subIdx === 1) { valA = "托高之中"; valB = Math.round(angleL); isStepPassed = (angleL > 100); }
+                if (cur.subIdx === 2) { valA = "高舉伸展"; valB = Math.round(angleL); isStepPassed = (angleL >= 125 && angleR >= 125); }
+                if (cur.subIdx === 3) { valA = "兩側放鬆落"; valB = "重歸身側"; isStepPassed = (leftWrist.y > leftShoulder.y); }
+            } else if (cur.mainIdx === 1) { 
+                if (cur.subIdx === 0) { valA = "馬步相交"; valB = "抱球準備"; isStepPassed = (leftWrist.y > leftShoulder.y); } 
+                if (cur.subIdx === 1 || cur.subIdx === 2) { valA = Math.round(angleL); valB = Math.round(angleR); isStepPassed = (angleL >= 120); }
+                if (cur.subIdx === 3) { valA = "起立還原"; valB = "放鬆下垂"; isStepPassed = (leftWrist.y > leftShoulder.y); }
+            } else {
+                valA = Math.round(angleL); valB = Math.round(angleR);
+                isStepPassed = (angleL >= 120 || angleR >= 120 || leftWrist.y < leftShoulder.y);
+            }
 
-                if (isStepPassed) {
-                    document.getElementById('val-a').style.color = '#27ae60';
-                    document.getElementById('val-b').style.color = '#27ae60';
-                    if (!isHolding) { isHolding = true; holdStartTime = Date.now(); }
-                    let elapsed = Date.now() - holdStartTime;
-                    let percentage = Math.min((elapsed / requiredHoldTime) * 100, 100);
-                    document.getElementById('action-progress').style.width = percentage + "%";
-                    document.getElementById('target-count').innerText = `${(elapsed/1000).toFixed(1)} / 1.5 秒`;
+            document.getElementById('val-a').innerText = typeof valA === 'number' ? valA + "°" : valA;
+            document.getElementById('val-b').innerText = typeof valB === 'number' ? valB + "°" : valB;
+
+            if (isStepPassed) {
+                document.getElementById('val-a').style.color = '#27ae60';
+                document.getElementById('val-b').style.color = '#27ae60';
+                
+                if (!isHolding) { isHolding = true; holdStartTime = Date.now(); }
+                let elapsed = Date.now() - holdStartTime;
+                let percentage = Math.min((elapsed / requiredHoldTime) * 100, 100);
+                document.getElementById('action-progress').style.width = percentage + "%";
+
+                if (Math.floor(elapsed / 150) % 2 === 0) playHoldTickSound(percentage);
+
+                if (elapsed >= requiredHoldTime) {
+                    isHolding = false;
+                    document.getElementById('action-progress').style.width = "0%";
                     
-                    if (Math.floor(elapsed / 150) % 2 === 0) playHoldTickSound(percentage);
+                    currentRepetition++; // 🌟 成功維持一次，次數遞增
+                    
+                    if (currentRepetition < 3) {
+                        // 未滿 3 次：播放清脆小單音，提示長者放鬆並重複做下一次
+                        playHoldTickSound(100); 
+                        document.getElementById('target-count').innerText = `第 ${currentRepetition} / 3 次`;
+                        holdStartTime = Date.now() + 500; // 給予用家 0.5 秒時間還原落手
+                    } else {
+                        // 🌟 核心成就解鎖：做滿 3 次了！
+                        playPerfectBellSound(); // 播放宏亮大編鐘磬聲
+                        document.getElementById('target-count').innerText = `已完成 3 / 3 次！`;
+                        document.getElementById('target-count').style.color = '#27ae60';
 
-                    if (elapsed >= requiredHoldTime) {
-                        isHolding = false;
-                        document.getElementById('action-progress').style.width = "0%";
-                        playPerfectBellSound();
-                        if (currentGlobalIdx < 31) {
-                            loadStep(currentGlobalIdx + 1);
-                        } else {
-                            document.getElementById('instruction-text').innerText = "🎉 完美！你已成功順暢通關八段錦全套 32 步復康連擊！全身氣血通暢！";
-                            document.getElementById('target-count').innerText = "全功圓滿！";
-                        }
+                        // 進入暫停安全期，大字提醒長者停下
+                        gameState = "REST_LOCK";
+                        
+                        document.getElementById('target-card').classList.add('rest-mode');
+                        document.getElementById('card-header').innerText = "🎉 正確！全式做滿 3 次！";
+                        document.getElementById('instruction-text').innerText = "做得非常好！本式已圓滿達標。\n【請停下休息、恢復預備姿勢】\n3 秒後為你解鎖接住做下一式。";
+                        
+                        // 🌟 3秒後在極度安全的單線程環境下切換大關卡，徹底根絕崩潰閃退！
+                        setTimeout(() => {
+                            if (currentGlobalIdx < 31) {
+                                loadStep(currentGlobalIdx + 1);
+                            } else {
+                                document.getElementById('instruction-text').innerText = "🎉 奇蹟！全套八段錦 32 招微動作全部連擊完成！全功圓滿！";
+                            }
+                        }, 3500);
                     }
-                } else {
-                    if (!isHolding) {
-                        document.getElementById('val-a').style.color = '#e74c3c';
-                        document.getElementById('val-b').style.color = '#e74c3c';
-                        document.getElementById('action-progress').style.width = "0%";
-                    }
+                }
+            } else {
+                if (!isHolding) {
+                    document.getElementById('val-a').style.color = '#e74c3c';
+                    document.getElementById('val-b').style.color = '#e74c3c';
+                    document.getElementById('action-progress').style.width = "0%";
                 }
             }
             canvasCtx.restore();
