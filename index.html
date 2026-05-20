@@ -25,7 +25,6 @@
         h1 { margin-bottom: 5px; font-size: 26px; color: #2c3e50; }
         .subtitle { color: #7f8c8d; margin-bottom: 15px; font-size: 15px; }
 
-        /* 頂部導航與音頻控制 */
         .stage-selector {
             display: flex;
             flex-direction: column;
@@ -57,7 +56,6 @@
         .dot.active { background: #e67e22; transform: scale(1.15); box-shadow: 0 0 8px rgba(230,126,34,0.5); }
         .dot.completed { background: #2980b9; }
 
-        /* 主畫面佈局 */
         .main-layout {
             display: flex;
             flex-direction: row;
@@ -81,7 +79,6 @@
             transform: rotateY(180deg); object-fit: cover;
         }
 
-        /* 示範區 */
         .demo-box {
             width: 300px; height: 390px; background-color: #ffffff;
             border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.1);
@@ -130,7 +127,7 @@
 <body>
 
     <h1>樂活 AI 復康運動助手</h1>
-    <div class="subtitle">傳統八段錦【32 微動作長者高容錯流暢示範版】</div>
+    <div class="subtitle">傳統八段錦【32 微動作高容錯流暢防卡關版】</div>
 
     <div class="stage-selector">
         <div class="nav-row">
@@ -214,7 +211,7 @@
             });
         }
 
-        // --- 核心動態示範數學插值引擎 (Lerp for Animation Loops) ---
+        // --- 核心動態示範數學插值引擎 ---
         let animFrameId = null; let animTime = 0;
         function lerp(start, end, amt){ return (1 - amt) * start + amt * end; }
 
@@ -226,8 +223,9 @@
                 animTime += 0.02; 
                 let t = (Math.sin(animTime - Math.PI / 2) + 1) / 2; 
 
-                const startPose = initFrameFn();
-                const endPose = targetFrameFn();
+                // 加上防呆防呆保護，避免資料格式未讀取時出錯
+                const startPose = initFrameFn ? initFrameFn() : { arm:[75,120,70,165,125,120,130,165], leg:[80,210,75,270,120,210,125,270], body:[100,50,100,100,160] };
+                const endPose = targetFrameFn ? targetFrameFn() : startPose;
 
                 let currentArm = {
                     x11: lerp(startPose.arm[0], endPose.arm[0], t), y11: lerp(startPose.arm[1], endPose.arm[1], t),
@@ -276,52 +274,59 @@
             document.getElementById('demo-body').setAttribute("x1", p.bx1); document.getElementById('demo-body').setAttribute("x2", p.bx2); document.getElementById('demo-body').setAttribute("y2", p.by2);
         }
 
-        // --- 32 個微動作定格數據對照資料庫 ---
+        // --- 修正、補全並對齊後的 32 微動作完整大資料庫 ---
         const ALL_32_STEPS = [];
+        const BASE_ARM = [75,120,70,165, 125,120,130,165];
+        const BASE_LEG = [80,210,75,270, 120,210,125,270];
+        const BASE_BODY = [100,50,100,100,160];
+
         const RAW_DATA = [
             {
                 title: "第一式：兩手托天理三焦", benefit: "促進全身氣血循環，拉伸脊椎，調理三焦。",
                 steps: [
                     {口訣:"十指交叉雙手托", 動作:"兩手在腹前十指交叉，掌心向上提起至胸前。", 指標A:"手腕在腹胸前", 指標B:"手腕距離收緊", 提示:"兩手在胸口收攏相交。", 
-                     init: () => ({ arm:[70,120,65,165, 130,120,135,165], leg:[80,210,75,270, 120,210,125,270], body:[100,50,100,100,160] }),
-                     target: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:[80,210,75,270, 120,210,125,270], body:[100,50,100,100,160] })},
+                     init: () => ({ arm:[70,120,65,165, 130,120,135,165], leg:BASE_LEG, body:BASE_BODY }),
+                     target: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:BASE_LEG, body:BASE_BODY })},
                     {口訣:"翻掌朝天向上拉", 動作:"在胸前翻掌向上托起，手臂向上推伸。", 指標A:"手腕超越肩膀", 指標B:"手肘伸展角度", 提示:"雙手向上前方推高。",
-                     init: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:[80,210,75,270, 120,210,125,270], body:[100,50,100,100,160] }),
-                     target: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:[80,210,75,270, 120,210,125,270], body:[100,50,100,100,160] })},
-                    {口訣:"提踵仰頭望手背", 動作:"手臂儘量打直，抬頭看手背，腳後跟微提。", 指標A:"仰頭/提踵狀態", 指標B:"手肘高舉程度", 提示:"長者友善判定：手肘微曲高舉(>130°)即可通關！",
-                     init: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:[80,210,75,270, 120,210,125,270], body:[100,50,100,100,160] }),
+                     init: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:BASE_LEG, body:BASE_BODY }),
+                     target: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:BASE_LEG, body:BASE_BODY })},
+                    {口訣:"提踵仰頭望手背", 動作:"手臂儘量打直，抬頭看手背，腳後跟微提。", 指標A:"仰頭/提踵狀態", 指標B:"手肘高舉程度", 提示:"長者友善判定：手肘高舉微曲(>130°)即可解鎖通關！",
+                     init: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:BASE_LEG, body:BASE_BODY }),
                      target: () => ({ arm:[80,40,80,5, 120,40,120,5], leg:[80,200,75,260, 120,200,125,260], body:[100,45,100,100,150] })},
                     {口訣:"調理三焦氣機通", 動作:"雙手分開，從兩側緩緩劃圈落下還原。", 指標A:"手腕橫向外展", 指標B:"雙手降回兩側", 提示:"雙臂向身體兩側弧形垂下。",
                      init: () => ({ arm:[80,40,80,5, 120,40,120,5], leg:[80,200,75,260, 120,200,125,260], body:[100,45,100,100,150] }),
-                     target: () => ({ arm:[60,110,40,150, 140,110,160,150], leg:[80,210,75,270, 120,210,125,270], body:[100,50,100,100,160] })}
+                     target: () => ({ arm:[60,110,40,150, 140,110,160,150], leg:BASE_LEG, body:BASE_BODY })}
                 ]
             },
             {
                 title: "第二式：左右開弓似射雕", benefit: "發展下肢力量，擴胸伸展，宣肺理氣。",
                 steps: [
                     {口訣:"馬步下蹲左弓手", 動作:"雙腳向兩側跨開，身體下蹲成馬步，雙手交叉於胸前準備。", 指標A:"骨盆馬步高度", 指標B:"雙臂胸前相交", 提示:"下蹲呈馬步，雙手交叉。", 
-                     init: () => ({ arm:[75,120,70,165, 125,120,130,165], leg:[80,210,75,270, 120,210,125,270], body:[100,50,100,100,160] }),
+                     init: () => ({ arm:BASE_ARM, leg:BASE_LEG, body:BASE_BODY }),
                      target: () => ({ arm:[85,100,75,120, 115,100,125,120], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
-                    {口訣:"右手拉弦如射雕", 動作:"左手食指豎起向左推出，右手如拉弓弦拉至右肩前，眼看左手。", 指標A:"左手臂前推度", 指標B:"右手肘拉拉度", 提示:"容錯判定：左臂向左平舉，右手肘拉開即可。",
+                    {口訣:"右手拉弦如射雕", 動作:"左手食指豎起向左推出，右手如拉弓弦拉至右肩前，眼看左手。", 指標A:"左手臂前推度", 指標B:"右手肘拉開度", 提示:"容錯判定：左臂向左平舉展開即可。",
                      init: () => ({ arm:[85,100,75,120, 115,100,125,120], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
-                     target: () => ({ arm:[50,90,10,90, 120,90,145,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })}
+                     target: () => ({ arm:[50,90,10,90, 120,90,145,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
+                    {口訣:"眼神凝視遠方處", 動作:"保持馬步拉弓，定格，眼神堅定凝視左手前方。", 指標A:"擴胸對稱與穩定", 指標B:"左肘舒展水平", 提示:"穩住姿勢，眼睛看左方公仔指引。",
+                     init: () => ({ arm:[50,90,10,90, 120,90,145,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
+                     target: () => ({ arm:[45,90,5,90, 120,90,150,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
+                    {口訣:"宣肺理氣寬胸襟", 動作:"雙手放鬆，起身直立，雙腳收回還原。", 指標A:"起立拉直雙腿", 指標B:"兩臂緩慢垂落", 提示:"緩慢起立，全身放鬆收回。",
+                     init: () => ({ arm:[45,90,5,90, 120,90,150,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
+                     target: () => ({ arm:BASE_ARM, leg:BASE_LEG, body:BASE_BODY })}
                 ]
             }
         ];
 
-        const BASE_ARM = [75,120,70,165, 125,120,130,165];
-        const BASE_LEG = [80,210,75,270, 120,210,125,270];
-        const BASE_BODY = [100,50,100,100,160];
-        
         const EXT_DATA = [
-            { title:"第三式：調理脾胃須單舉", benefit:"按摩脾胃、促進消化。", steps:[{k:"一手頂天一手按",d:"左手翻掌上舉，右手下按雙向對沖。"},{k:"指尖對應力對沖",d:"雙掌用力對拉，左手肘盡量挺直。"},{k:"右升左降交替練",d:"雙手交替在胸前抱球過渡，準備換邊。"},{k:"調理脾胃效無窮",d:"換右手一側上舉，左手下按動作。"}] },
+            { title:"第三式：調理脾胃須單舉", benefit:"牽動腹腔，按摩脾胃。", steps:[{k:"一手頂天一手按",d:"左手翻掌上舉，右手下按雙向對沖。"},{k:"指尖對應力對沖",d:"雙掌用力對拉，左手肘儘量挺直。"},{k:"右升左降交替練",d:"雙手交替在胸前抱球過渡，準備換邊。"},{k:"調理脾胃效無窮",d:"換右手一側上舉，左手下按動作。"}] },
             { title:"第四式：五勞七傷往後瞧", benefit:"放鬆頸椎，舒緩雙肩疲勞。", steps:[{k:"轉頭扭頸後方瞧",d:"身體直立，頭緩緩向左後方轉動眼看後方。"},{k:"轉臂旋腕莫動搖",d:"雙臂向外旋轉，拉開肩胸經絡。"},{k:"舒緩經絡除疲勞",d:"保持向後瞧姿勢定格，深度呼吸放鬆。"},{k:"五勞七傷一併消",d:"頭部與雙臂旋回前方，上身正中放鬆。"}] },
-            { title:"第五式：搖頭擺尾去心火", benefit:"活動脊椎下引心火。", steps:[{k:"馬步寬大雙手按",d:"邁大馬步下蹲，雙手虎口扶在膝蓋上。"},{k:"搖頭晃身尾閭擺",d:"身體前傾，頭向左前方搖晃微旋。"},{k:"降火滋陰通經脈",d:"臀部尾閭向右擺，脊椎流暢扭動。"},{k:"心清氣爽身自在",d:"起立回正，雙腳收回恢復基本站姿。"}] },
-            { title:"第六式：兩手攀足固腎腰", benefit:"強壯腰膝、固攝腎氣。", steps:[{k:"雙手反拉貼背下",d:"雙手高舉後貼著後背臀部向下摩運。"},{k:"沿腿向下攀足尖",d:"前屈折疊，雙手順大腿後側向下攀足尖. 。"},{k:"挺胸直脊引氣血",d:"雙手攀足尖，雙腿保持直立拉伸。"},{k:"固腎壯腰身手健",d:"緩緩直立起身，恢復正中站姿。"}] },
-            { title:"第七式：攢拳怒目增氣力", benefit:"舒肝理氣、增長金剛力。", steps:[{k:"馬步穩扎出拳快",d:"扎穩馬步，左拳向前緩緩猛烈衝出。"},{k:"瞪眼怒目氣力增",d:"雙眼睜大，怒目凝視前方。"},{k:"抓握有力收拳穩",d:"左手變掌抓拳收回，換右拳衝出。"},{k:"疏肝理氣顯神威",d:"收拳起立回正，全身放鬆。"}] },
+            { title:"第五式：搖頭擺尾去心火", benefit:"活動脊椎下引心火。", steps:[{k:"馬步寬大雙手按",d:"邁大馬步下蹲，雙手虎口扶在膝蓋上。"},{k:"搖頭晃身尾閭擺",d:"身體前傾，頭向左前方搖晃微旋。"},{k:"降火滋陰通經脈",d:"臀部尾閭向右擺，脊椎流暢扭動. 。"},{k:"心清氣爽身自在",d:"起立回正，雙腳收回恢復基本站姿。"}] },
+            { title:"第六式：兩手攀足固腎腰", benefit:"強壯腰膝、固攝腎氣。", steps:[{k:"雙手反拉貼背下",d:"雙手高舉後貼著後背臀部向下摩運。"},{k:"沿腿向下攀足尖",d:"前屈折疊，雙手順大腿後側向下攀足尖。"},{k:"挺胸直脊引氣血",d:"雙手攀足尖，雙腿保持直立拉伸。"},{k:"固腎壯腰身手健",d:"緩緩直立起身，恢復正中站姿。"}] },
+            { title:"第七式：攢拳怒目增氣力", benefit:"舒肝理氣、增長金剛力。", steps:[{k:"馬步穩扎出拳快",d:"扎穩馬步，左拳向前緩緩猛烈衝出。"},{k:"瞪眼怒目氣力增",d:"雙眼睜大，怒目凝視前方。"},{k:"抓握有力收拳穩",d:"左手變掌抓拳收回，換右拳衝出. 。"},{k:"疏肝理氣顯神威",d:"收拳起立回正，全身放鬆。"}] },
             { title:"第八式：背後七顛百病消", benefit:"震盪脊椎，消除百病。", steps:[{k:"腳跟提起莫動搖",d:"雙腳併攏，腳後跟緩緩提起提起抬高。"},{k:"百會上頂全身高",d:"百會穴上頂保持筆直平衡。"},{k:"輕輕落地震一下",d:"腳跟放鬆落地，使身體受到微小震動。"},{k:"全身放鬆百病消",d:"雙手重歸身側，放鬆收功。"}] }
         ];
 
+        // 扁平化整合
         RAW_DATA.forEach((item, sIdx) => {
             item.steps.forEach((st, stepIdx) => {
                 ALL_32_STEPS.push({
@@ -342,7 +347,6 @@
                     init: () => ({ arm: BASE_ARM, leg: BASE_LEG, body: BASE_BODY }),
                     target: () => {
                         let armTemp = [...BASE_ARM];
-                        // 模擬動態公仔的上下揮舞與拉展軌跡
                         if(stepIdx === 0) armTemp = [75,80,65,40, 125,120,130,165];
                         if(stepIdx === 1) armTemp = [75,40,70,5, 125,45,120,5];
                         if(stepIdx === 2) armTemp = [60,90,40,110, 140,90,160,110];
@@ -355,6 +359,7 @@
 
         function buildDots() {
             const container = document.getElementById('dots-container');
+            if(!container) return;
             container.innerHTML = "";
             for(let i=0; i<32; i++) {
                 let d = document.createElement('div');
@@ -363,15 +368,21 @@
         }
 
         function loadStep(gIdx) {
+            if (gIdx < 0 || gIdx >= ALL_32_STEPS.length) return;
             currentGlobalIdx = gIdx; isHolding = false;
-            document.getElementById('action-progress').style.width = "0%";
-            document.getElementById('global-progress-text').innerText = `關卡進度: ${gIdx + 1} / 32`;
+            
+            const progressText = document.getElementById('global-progress-text');
+            if(progressText) progressText.innerText = `關卡進度: ${gIdx + 1} / 32`;
+            
+            const progressBar = document.getElementById('action-progress');
+            if(progressBar) progressBar.style.width = "0%";
             
             const cfg = ALL_32_STEPS[gIdx];
             document.getElementById('main-badge').innerText = cfg.mainTitle + " (" + cfg.badge + ")";
             document.getElementById('benefit-text').innerText = "好處：" + cfg.benefit;
             document.getElementById('instruction-text').innerText = cfg.desc;
-            document.getElementById('lbl-a').innerText = cfg.lblA; document.getElementById('lbl-b').innerText = cfg.lblB;
+            document.getElementById('lbl-a').innerText = cfg.lblA; 
+            document.getElementById('lbl-b').innerText = cfg.lblB;
             document.getElementById('help-desc').innerText = "動作對齊指南：" + cfg.help;
             document.getElementById('target-count').innerText = `0 / 1.5 秒`;
 
@@ -384,13 +395,23 @@
 
         function jumpStep(dir) { let n = currentGlobalIdx + dir; if (n >= 0 && n < 32) loadStep(n); }
         function calculateAngle(p1, p2, p3) {
+            if(!p1 || !p2 || !p3) return 0;
             let radians = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
             let angle = Math.abs((radians * 180.0) / Math.PI); if (angle > 180.0) angle = 360 - angle; return angle;
         }
 
         // --- AI 運動捕捉引擎 ---
+        let currentGlobalIdx = 0;
+        let isHolding = false;
+        let holdStartTime = 0;
+        const requiredHoldTime = 1500; 
+
         function onResults(results) {
+            const loadingTag = document.getElementById('loading');
             if (loadingTag) loadingTag.style.display = 'none';
+            
+            const canvasElement = document.getElementById('output_canvas');
+            const canvasCtx = canvasElement.getContext('2d');
             canvasCtx.save(); canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
@@ -409,24 +430,19 @@
                 let angleL = calculateAngle(leftShoulder, leftElbow, leftWrist);
                 let angleR = calculateAngle(rightShoulder, rightElbow, rightWrist);
 
-                // --- 核心防卡關升級演算法邏輯 ---
-                if (cur.mainIdx === 0) { // 第一式
+                if (cur.mainIdx === 0) { 
                     if (cur.subIdx === 0) { valA = "胸前就位"; valB = Math.round(Math.abs(leftWrist.x - rightWrist.x)*10); isStepPassed = (leftWrist.y > leftShoulder.y - 0.1); }
                     if (cur.subIdx === 1) { valA = "托高之中"; valB = Math.round(angleL); isStepPassed = (angleL > 100); }
-                    // 🌟 防卡關關鍵點 1：將原本 155° 嚴格要求，大幅放寬到 130°（長者手臂高舉微曲即可解鎖）
                     if (cur.subIdx === 2) { valA = "高舉伸展"; valB = Math.round(angleL); isStepPassed = (angleL >= 130 && angleR >= 130); }
                     if (cur.subIdx === 3) { valA = "兩側放鬆落"; valB = "重歸身側"; isStepPassed = (leftWrist.y > leftShoulder.y); }
-                } else if (cur.mainIdx === 1) { // 第二式
-                    if (cur.subIdx === 0) { valA = "準備下蹲"; valB = "雙手胸前交"; isStepPassed = true; } // 準備動作直接過
-                    // 🌟 防卡關關鍵點 2：拉弓角度放寬，且只要左臂展開大於 125° 即可解鎖
+                } else if (cur.mainIdx === 1) { 
+                    if (cur.subIdx === 0) { valA = "準備下蹲"; valB = "雙手胸前交"; isStepPassed = true; } 
                     if (cur.subIdx === 1 || cur.subIdx === 2) { valA = Math.round(angleL); valB = Math.round(angleR); isStepPassed = (angleL >= 125); }
                     if (cur.subIdx === 3) { valA = "起立還原"; valB = "中正安舒"; isStepPassed = (leftWrist.y > leftShoulder.y); }
-                } else if (cur.mainIdx === 2) { // 第三式
+                } else if (cur.mainIdx === 2) { 
                     valA = Math.round(angleL); valB = Math.round(angleR);
                     isStepPassed = (angleL >= 125 || angleR >= 125 || leftWrist.y < leftShoulder.y);
                 } else {
-                    // 🌟 防卡關關鍵點 3：針對第 4 至第 8 式（EXT_DATA），實施智慧動態寬容保底機制
-                    // 只要長者出現在鏡頭前且有在做動作，系統會顯示即時角度，並直接放行累積計時，保障絕對不會卡關！
                     valA = Math.round(angleL) + "°";
                     valB = Math.round(angleR) + "°";
                     isStepPassed = true; 
@@ -471,6 +487,8 @@
         const pose = new Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
         pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
         pose.onResults(onResults);
+        
+        const videoElement = document.getElementById('webcam');
         const camera = new Camera(videoElement, { onFrame: async () => { await pose.send({ image: videoElement }); }, width: 500, height: 390 });
         camera.start();
 
