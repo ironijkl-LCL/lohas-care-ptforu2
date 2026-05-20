@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>樂活 AI 復康助手 - 八段錦手睜髖部8點到位精準版</title>
+    <title>樂活 AI 復康助手 - 八段錦精準 6 點到位版</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
@@ -25,7 +25,6 @@
         h1 { margin-bottom: 5px; font-size: 26px; color: #2c3e50; }
         .subtitle { color: #7f8c8d; margin-bottom: 15px; font-size: 15px; }
 
-        /* 頂部導航與進度圓點 */
         .stage-selector {
             display: flex;
             flex-direction: column;
@@ -41,7 +40,8 @@
         }
         .nav-row { display: flex; gap: 10px; justify-content: center; width: 100%; align-items: center; }
         .ctrl-btn {
-            background-color: #27ae60; color: white; border: none; padding: 10px 20px;
+            background-color: #27ae60;
+            color: white; border: none; padding: 10px 20px;
             font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s;
         }
         .ctrl-btn:hover { opacity: 0.9; }
@@ -57,7 +57,6 @@
         .dot.active { background: #e67e22; transform: scale(1.15); box-shadow: 0 0 8px rgba(230,126,34,0.5); }
         .dot.completed { background: #2980b9; }
 
-        /* 主畫面佈局 */
         .main-layout {
             display: flex;
             flex-direction: row;
@@ -81,7 +80,6 @@
             transform: rotateY(180deg); object-fit: cover;
         }
 
-        /* 示範區 */
         .demo-box {
             width: 300px; height: 390px; background-color: #ffffff;
             border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.1);
@@ -91,7 +89,6 @@
         }
         .demo-title { font-weight: bold; color: #e67e22; margin-bottom: 5px; font-size: 14px; text-align: center; }
 
-        /* 右側控制面板 */
         .control-panel {
             width: 350px; background-color: #ffffff; border-radius: 12px;
             padding: 15px; box-shadow: 0 6px 12px rgba(0,0,0,0.1);
@@ -110,7 +107,6 @@
             padding: 12px; border-radius: 4px; margin: 10px 0; min-height: 90px;
             transition: background-color 0.3s;
         }
-        /* 3次做滿停下休整卡片樣式 */
         .instruction-card.rest-mode {
             background-color: #d4edda; border-left-color: #28a745;
         }
@@ -137,12 +133,12 @@
 <body>
 
     <h1>樂活 AI 復康運動助手</h1>
-    <div class="subtitle">傳統八段錦【手睜髖部 8 點核心定位・3擊連擊流暢版】</div>
+    <div class="subtitle">傳統八段錦【精準 6 點對位・動聽背景音樂版】</div>
 
     <div class="stage-selector">
         <div class="nav-row">
             <button class="ctrl-btn" onclick="manualJump(-1)">◀ 上一步</button>
-            <button class="ctrl-btn audio-toggle-btn" id="audio-init-btn" onclick="initAudioSystem()">🎵 開氣音樂與音效</button>
+            <button class="ctrl-btn audio-toggle-btn" id="audio-init-btn" onclick="initAudioSystem()">🎵 開啟背景音樂</button>
             <div style="font-weight: bold; font-size: 16px; display: flex; align-items: center;" id="global-progress-text">關卡進度: 1 / 32</div>
             <button class="ctrl-btn" onclick="manualJump(1)">下一步 ▶</button>
         </div>
@@ -182,49 +178,125 @@
                     <p id="instruction-text">加載中...</p>
                 </div>
                 <div class="metrics">
-                    <div class="metric-item"><span id="lbl-a">8大定點到位率：</span><span class="metric-value" id="val-a">0 / 8 點</span></div>
-                    <div class="metric-item"><span id="lbl-b">上身重心平衡度：</span><span class="metric-value" id="val-b">0%</span></div>
+                    <div class="metric-item"><span id="lbl-a">核心 6 點到位率：</span><span class="metric-value" id="val-a">0 / 6 點</span></div>
+                    <div class="metric-item"><span id="lbl-b">動作重合度：</span><span class="metric-value" id="val-b">0%</span></div>
                     <div class="metric-item"><span>本招重複進度：</span><span id="target-count" style="font-weight:bold; color:#2980b9;">第 0 / 3 次</span></div>
                     <div class="progress-container"><div class="progress-bar" id="action-progress"></div></div>
                 </div>
             </div>
             <div style="font-size:12px; color:#95a5a6; text-align:center; margin-top:8px;" id="help-desc">
-                AI 正在對比手睜、髖部等 8 點核心定格位置...
+                AI 正在對齊上身4點、下身2點（共6點）核心位置...
             </div>
         </div>
     </div>
 
     <script>
-        // --- WEB AUDIO API AUDIO ENGINE ---
-        let audioCtx = null; let bgmOscillator = null; let bgmGain = null;
+        // --- 🌟 全新動聽音樂生成引擎 (Lo-Fi Jazz Groove Sequencer) ---
+        let audioCtx = null;
+        let musicSeqId = null;
+        let beatCount = 0;
+
+        // 五聲音階和弦與低音律動配置 (D宮調式：D - E - F# - A - B)
+        const CHORDS = [
+            { bass: 73.42, Arpeggio: [146.83, 220.00, 293.66, 440.00] }, // D大調和弦律動
+            { bass: 87.31, Arpeggio: [164.81, 220.00, 329.63, 440.00] }, // Em7和弦律動
+            { bass: 98.00, Arpeggio: [196.00, 293.66, 392.00, 587.33] }  // G大調和弦律動
+        ];
+
         function initAudioSystem() {
             if (audioCtx) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            bgmGain = audioCtx.createGain(); bgmGain.gain.setValueAtTime(0.05, audioCtx.currentTime); bgmGain.connect(audioCtx.destination);
-            bgmOscillator = audioCtx.createOscillator(); bgmOscillator.type = 'triangle'; bgmOscillator.frequency.setValueAtTime(146.83, audioCtx.currentTime); bgmOscillator.connect(bgmGain); bgmOscillator.start();
-            const audioBtn = document.getElementById('audio-init-btn'); audioBtn.innerText = "🎵 音樂播音中"; audioBtn.style.backgroundColor = "#2980b9"; audioBtn.style.animation = "none";
+            
+            // 啟動動聽音遊節拍器 (110 BPM -> 每136毫秒一個16分音符，每545毫秒一個主拍)
+            const tempoInterval = 272; // 八分音符間隔
+            
+            function playNextBeat() {
+                const now = audioCtx.currentTime;
+                const chordIdx = Math.floor(beatCount / 16) % CHORDS.length;
+                const currentChord = CHORDS[chordIdx];
+
+                // 1. 每 4 拍下一聲溫暖穩定的爵士低音 (Bass)
+                if (beatCount % 4 === 0) {
+                    let bassOsc = audioCtx.createOscillator();
+                    let bassGain = audioCtx.createGain();
+                    bassOsc.type = 'triangle';
+                    bassOsc.frequency.setValueAtTime(currentChord.bass, now);
+                    bassGain.gain.setValueAtTime(0.25, now);
+                    bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                    bassOsc.connect(bassGain);
+                    bassGain.connect(audioCtx.destination);
+                    bassOsc.start(now);
+                    bassOsc.stop(now + 0.6);
+                }
+
+                // 2. 每拍隨機流淌一段清脆動聽的五聲音階旋律線 (Arpeggio Melody)
+                if (beatCount % 2 === 0 || Math.random() > 0.6) {
+                    let melOsc = audioCtx.createOscillator();
+                    let melGain = audioCtx.createGain();
+                    let note = currentChord.Arpeggio[Math.floor(Math.random() * currentChord.Arpeggio.length)];
+                    
+                    melOsc.type = 'sine'; // 純淨柔和的爵士電鋼琴音色
+                    melOsc.frequency.setValueAtTime(note, now);
+                    melGain.gain.setValueAtTime(0.06, now);
+                    melGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    
+                    melOsc.connect(melGain);
+                    melGain.connect(audioCtx.destination);
+                    melOsc.start(now);
+                    melOsc.stop(now + 0.4);
+                }
+
+                // 3. 穩定的舒緩打擊樂 (Lo-Fi Shaker/Hi-Hat) 模擬鼓點節奏
+                if (beatCount % 2 === 0) {
+                    let noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.04, audioCtx.sampleRate);
+                    let output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < noiseBuffer.length; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+                    let whiteNoise = audioCtx.createBufferSource();
+                    whiteNoise.buffer = noiseBuffer;
+                    let noiseGain = audioCtx.createGain();
+                    noiseGain.gain.setValueAtTime(0.015, now);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    whiteNoise.connect(noiseGain);
+                    noiseGain.connect(audioCtx.destination);
+                    whiteNoise.start(now);
+                }
+
+                beatCount++;
+                musicSeqId = setTimeout(playNextBeat, tempoInterval);
+            }
+
+            playNextBeat();
+
+            const audioBtn = document.getElementById('audio-init-btn');
+            audioBtn.innerText = "🎵 背景音樂播放中";
+            audioBtn.style.backgroundColor = "#2980b9";
+            audioBtn.style.animation = "none";
         }
-        function playHoldTickSound(p) {
+
+        // 當重複滿 3 次過渡時播放一小段動聽的「完美通關和弦伴奏」
+        function playPerfectPassGroove() {
             if (!audioCtx) return;
-            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(380 + (p * 4), audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.02, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.08);
-        }
-        function playPerfectBellSound() {
-            if (!audioCtx) return; const now = audioCtx.currentTime;
-            [523.25, 783.99, 1046.50].forEach((f, idx) => {
-                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(f, now);
-                gain.gain.setValueAtTime(idx === 0 ? 0.2 : 0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(now + 1.2);
+            const now = audioCtx.currentTime;
+            // 短暫齊奏明亮的通關五聲大三和弦
+            [293.66, 369.99, 440.00, 587.33].forEach((freq, idx) => {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + (idx * 0.05)); // 帶有掃弦感
+                gain.gain.setValueAtTime(0.12, now + (idx * 0.05));
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + (idx * 0.05));
+                osc.stop(now + 1.0);
             });
         }
 
-        // --- 核心動態示範插值引擎 ---
+        // --- 動態示範插值引擎 ---
         let animFrameId = null; let animTime = 0;
-        let globalDemoTargetPose = null; // 🌟 實時存儲公仔目前動作的 8 點坐標比例，供 AI 比對
-
+        let globalDemoTargetPose = null; 
         function lerp(start, end, amt){ return (1 - amt) * start + amt * end; }
 
         function startDemoAnimation(initFrameFn, targetFrameFn) {
@@ -235,8 +307,8 @@
                 animTime += 0.02; 
                 let t = (Math.sin(animTime - Math.PI / 2) + 1) / 2; 
 
-                const startPose = (initFrameFn && typeof initFrameFn === 'function') ? initFrameFn() : { arm:[75,120,70,165,125,120,130,165], leg:[80,210,75,270,120,210,125,270], body:[100,50,100,100,160] };
-                const endPose = (targetFrameFn && typeof targetFrameFn === 'function') ? targetFrameFn() : startPose;
+                const startPose = initFrameFn ? initFrameFn() : { arm:[75,120,70,165,125,120,130,165], leg:[80,210,75,270,120,210,125,270], body:[100,50,100,100,160] };
+                const endPose = targetFrameFn ? targetFrameFn() : startPose;
 
                 let currentArm = {
                     x11: lerp(startPose.arm[0], endPose.arm[0], t), y11: lerp(startPose.arm[1], endPose.arm[1], t),
@@ -255,16 +327,14 @@
                     bx1: lerp(startPose.body[2], endPose.body[2], t), bx2: lerp(startPose.body[3], endPose.body[3], t), by2: lerp(startPose.body[4], endPose.body[4], t)
                 };
 
-                // 🌟 精準映射：將 SVG 小公仔坐標轉換為標準化幾何藍圖（上身6點 ＋ 下身2點）
+                // 將小公仔坐標轉換映射至精準 6 點歸一化資料結構 (上身 4 點 + 下身 2 點)
                 globalDemoTargetPose = {
                     leftShoulder:  { x: currentArm.x11/200, y: currentArm.y11/290 },
                     rightShoulder: { x: currentArm.x21/200, y: currentArm.y21/290 },
-                    leftElbow:     { x: currentArm.x12/200, y: currentArm.y12/290 }, // 手睜
-                    rightElbow:    { x: currentArm.x22/200, y: currentArm.y22/290 }, // 手睜
-                    leftWrist:     { x: (currentArm.x12 - 12)/200, y: (currentArm.y12 + 25)/290 }, 
-                    rightWrist:    { x: (currentArm.x22 + 12)/200, y: (currentArm.y22 + 25)/290 },
-                    leftHip:       { x: currentLeg.x11/200, y: currentLeg.y11/290 }, // 髖部
-                    rightHip:      { x: currentLeg.x21/200, y: currentLeg.y21/290 }  // 髖部
+                    leftWrist:     { x: currentArm.x12/200, y: currentArm.y12/290 }, 
+                    rightWrist:    { x: currentArm.x22/200, y: currentArm.y22/290 },
+                    leftHip:       { x: currentLeg.x11/200, y: currentLeg.y11/290 },  
+                    rightHip:      { x: currentLeg.x21/200, y: currentLeg.y21/290 }   
                 };
 
                 applyArmPoints(currentArm); applyLegPoints(currentLeg); applyBodyPoints(currentBody);
@@ -304,16 +374,16 @@
             {
                 title: "第一式：兩手托天理三焦", benefit: "促進全身氣血循環，拉伸脊椎，調理三焦。",
                 steps: [
-                    {口訣:"十指交叉雙手托", 動作:"兩手在腹前十指交叉，掌心向上提起至胸前。", 指標A:"手腕在腹胸前", 指標B:"手腕距離收緊", 提示:"兩手在胸口收攏相交。", 
+                    {口訣:"十指交叉雙手托", 動作:"兩手在腹前十指交叉，掌心向上提起至胸前。", 指標A:"雙手胸前相交", 指標B:"上身核心就位", 提示:"兩手在下腹、胸口中線收攏靠攏。", 
                      init: () => ({ arm:[70,120,65,165, 130,120,135,165], leg:BASE_LEG, body:BASE_BODY }),
                      target: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:BASE_LEG, body:BASE_BODY })},
-                    {口訣:"翻掌朝天向上拉", 動作:"在胸前翻掌向上托起，手臂向上推伸。", 指標A:"手腕超越肩膀", 指標B:"手肘伸展角度", 提示:"雙手向上前方推高。",
+                    {口訣:"翻掌朝天向上拉", 動作:"在胸前翻掌向上托起，手臂向上推伸。", 指標A:"手腕超越肩膀", 指標B:"雙臂垂直上推", 提示:"翻轉掌心朝天，向上平推。",
                      init: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:BASE_LEG, body:BASE_BODY }),
                      target: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:BASE_LEG, body:BASE_BODY })},
-                    {口訣:"提踵仰頭望手背", 動作:"手臂儘量打直，抬頭看手背，腳後跟微提。", 指標A:"雙側手睜拔直", 指標B:"雙髖重心穩定", 提示:"精準到位：注意手睜向上完全外展，下肢髖部中正站穩。",
+                    {口訣:"提踵仰頭望手背", 動作:"手臂儘量打直，抬頭看手背，腳後跟微提。", 指標A:"手掌托天到位", 指標B:"雙髖筆直中正", 提示:"精準 6 點判定：手腕完全高舉，雙髖站直挺拔。",
                      init: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:BASE_LEG, body:BASE_BODY }),
                      target: () => ({ arm:[80,40,80,5, 120,40,120,5], leg:[80,200,75,260, 120,200,125,260], body:[100,45,100,100,150] })},
-                    {口訣:"調理三焦氣機通", 動作:"雙手分開，從兩側緩緩劃圈落下還原。", 指標A:"手腕橫向外展", 指標B:"雙手降回兩側", 提示:"雙臂向身體兩側大範圍弧形垂下。",
+                    {口訣:"調理三焦氣機通", 動作:"雙手分開，從兩側緩緩劃圈落下還原。", 指標A:"手腕橫向外展", 指標B:"放鬆垂落回正", 提示:"雙手向身體兩側弧形緩慢落下。",
                      init: () => ({ arm:[80,40,80,5, 120,40,120,5], leg:[80,200,75,260, 120,200,125,260], body:[100,45,100,100,150] }),
                      target: () => ({ arm:[60,110,40,150, 140,110,160,150], leg:BASE_LEG, body:BASE_BODY })}
                 ]
@@ -321,16 +391,16 @@
             {
                 title: "第二式：左右開弓似射雕", benefit: "發展下肢力量，擴胸伸展，宣肺理氣。",
                 steps: [
-                    {口訣:"馬步下蹲左弓手", 動作:"雙腳向兩側跨開，身體下蹲成馬步，雙手交叉於胸前準備。", 指標A:"骨盆馬步高度", 指標B:"雙臂胸前相交", 提示:"下蹲呈馬步，雙手交叉在胸前抱球。", 
+                    {口訣:"馬步下蹲左弓手", 動作:"雙腳向兩側跨開，身體下蹲成馬步，雙手交叉於胸前準備。", 指標A:"骨盆下蹲高度", 指標B:"雙手相交抱球", 提示:"馬步下蹲，雙手交叉於胸前。", 
                      init: () => ({ arm:BASE_ARM, leg:BASE_LEG, body:BASE_BODY }),
                      target: () => ({ arm:[85,100,75,120, 115,100,125,120], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
-                    {口訣:"右手拉弦如射雕", 動作:"左手食指豎起向左推出，右手如拉弓弦拉至右肩前，眼看左手。", 指標A:"左側手睜平推度", 指標B:"右側手睜後折度", 提示:"8點對位：左臂手睜與手腕向左平舉拉展到位，雙髖扣穩。",
+                    {口訣:"右手拉弦如射雕", 動作:"左手食指豎起向左推出，右手如拉弓弦拉至右肩前，眼看左手。", 指標A:"左手平推外展", 指標B:"右手向後折拉", 提示:"精準 6 點對齊：左手平舉推出，右手回拉展胸，雙髖馬步沉穩。",
                      init: () => ({ arm:[85,100,75,120, 115,100,125,120], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
                      target: () => ({ arm:[50,90,10,90, 120,90,145,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
-                    {口訣:"眼神凝視遠方處", 動作:"保持馬步拉弓，定格，眼神堅定凝視左手前方。", 指標A:"雙臂拉弓對稱", 指標B:"雙髖馬步扎實", 提示:"穩住上身，核心雙髖保持中正不動。",
+                    {口訣:"眼神凝視遠方處", 動作:"保持馬步拉弓，定格，眼神堅定凝視左手前方。", 指標A:"開弓結構穩定", 指標B:"雙髖馬步對正", 提示:"維持拉弓定格姿態，雙髖重心向下扣緊。",
                      init: () => ({ arm:[50,90,10,90, 120,90,145,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
                      target: () => ({ arm:[45,90,5,90, 120,90,150,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
-                    {口訣:"宣肺理氣寬胸襟", 動作:"雙手放鬆，起身直立，雙腳收回還原。", 指標A:"直立起雙腿", 指標B:"雙手落回身側", 提示:"緩慢起立，全身放鬆收回基本站姿。",
+                    {口訣:"宣肺理氣寬胸襟", 動作:"雙手放鬆，起身直立，雙腳收回還原。", 指標A:"起立拉直雙腿", 指標B:"雙手順暢下落", 提示:"緩慢起立，全身放鬆，雙手順意垂回身側。",
                      init: () => ({ arm:[45,90,5,90, 120,90,150,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
                      target: () => ({ arm:BASE_ARM, leg:BASE_LEG, body:BASE_BODY })}
                 ]
@@ -338,7 +408,7 @@
         ];
 
         const EXT_DATA = [
-            { title:"第三式：調理脾胃須單舉", benefit:"牽動腹腔，按摩脾胃。", steps:[{k:"一手頂天一手按",d:"左手翻掌上舉，右手下按雙向對沖。"},{k:"指尖對應力對沖",d:"雙掌用力對拉，左手睜儘量挺直。"},{k:"右升左降交替練",d:"雙手交替在胸前抱球過渡，準備換邊。"},{k:"調理脾胃效無窮",d:"換右手一側上舉，左手下按動作。"}] },
+            { title:"第三式：調理脾胃須單舉", benefit:"牽動腹腔，按摩脾胃。", steps:[{k:"一手頂天一手按",d:"左手翻掌上舉，右手下按雙向對沖。"},{k:"指尖對應力對沖",d:"雙掌用力對拉，左手腕儘量拔高。"},{k:"右升左降交替練",d:"雙手交替在胸前抱球過渡，準備換邊。"},{k:"調理脾胃效無窮",d:"換右手一側上舉，左手下按動作。"}] },
             { title:"第四式：五勞七傷往後瞧", benefit:"放鬆頸椎，舒緩雙肩疲勞。", steps:[{k:"轉頭扭頸後方瞧",d:"身體直立，頭緩緩向左後方轉動眼看後方。"},{k:"轉臂旋腕莫動搖",d:"雙臂向外旋轉，拉開肩胸經絡。"},{k:"舒緩經絡除疲勞",d:"保持向後瞧姿勢定格，深度呼吸放鬆。"},{k:"五勞七傷一併消",d:"頭部與雙臂旋回前方，上身正中放鬆。"}] },
             { title:"第五式：搖頭擺尾去心火", benefit:"活動脊椎下引心火。", steps:[{k:"馬步寬大雙手按",d:"邁大馬步下蹲，雙手虎口扶在膝蓋上。"},{k:"搖頭晃身尾閭擺",d:"身體前傾，頭向左前方搖晃微旋。"},{k:"降火滋陰通經脈",d:"臀部尾閭向右擺，脊椎流暢扭動。"},{k:"心清氣爽身自在",d:"起立回正，雙腳收回恢復基本站姿。"}] },
             { title:"第六式：兩手攀足固腎腰", benefit:"強壯腰膝、固攝腎氣。", steps:[{k:"雙手反拉貼背下",d:"雙手高舉後貼著後背臀部向下摩運。"},{k:"沿腿向下攀足尖",d:"前屈折疊，雙手順大腿後側向下攀足尖。"},{k:"挺胸直脊引氣血",d:"雙手攀足尖，雙腿保持直立拉伸。"},{k:"固腎壯腰身手健",d:"緩緩直立起身，恢復正中站姿。"}] },
@@ -346,7 +416,7 @@
             { title:"第八式：背後七顛百病消", benefit:"震盪脊椎，消除百病。", steps:[{k:"腳跟提起莫動搖",d:"雙腳併攏，腳後跟緩緩提起提起抬高。"},{k:"百會上頂全身高",d:"百會穴上頂保持筆直平衡。"},{k:"輕輕落地震一下",d:"腳跟放鬆落地，使身體受到微小震動。"},{k:"全身放鬆百病消",d:"雙手重歸身側，放鬆收功。"}] }
         ];
 
-        // 數據展開
+        // 扁平化整合
         RAW_DATA.forEach((item, sIdx) => {
             item.steps.forEach((st, stepIdx) => {
                 ALL_32_STEPS.push({
@@ -363,7 +433,7 @@
                 ALL_32_STEPS.push({
                     globalIdx: ALL_32_STEPS.length, mainTitle: item.title, benefit: item.benefit,
                     badge: `第 ${realIdx+1} 式：微動作 ${stepIdx+1}/4`, desc: `【口訣】${st.k}\n【要領】${st.d}`,
-                    lblA: "上身6點對位率", lblB: "雙髖中正平衡", help: "手睜髖部定位：跟隨公仔動態節奏舒展拉伸。",
+                    lblA: "雙肩雙腕對位", lblB: "雙髖中正重合", help: "高容錯保底：跟隨公仔動態姿勢展開拉伸即可解鎖！",
                     init: () => ({ arm: BASE_ARM, leg: BASE_LEG, body: BASE_BODY }),
                     target: () => {
                         let armTemp = [...BASE_ARM];
@@ -386,10 +456,10 @@
             }
         }
 
-        // --- 狀態機全局控制項 ---
+        // --- 核心狀態機控制項 ---
         let currentGlobalIdx = 0;
-        let currentRepetition = 0;      // 🌟 記錄當前動作重複計數（0 ➔ 3）
-        let gameState = "TRAINING";      // 🌟 "TRAINING" | "REST_LOCK"
+        let currentRepetition = 0;      
+        let gameState = "TRAINING";      
         let isHolding = false;
         let holdStartTime = 0;
         const requiredHoldTime = 1500; 
@@ -397,8 +467,8 @@
         function loadStep(gIdx) {
             if (gIdx < 0 || gIdx >= ALL_32_STEPS.length) return;
             currentGlobalIdx = gIdx; isHolding = false;
-            currentRepetition = 0;   // 每次換招，計數歸零
-            gameState = "TRAINING";  // 開放判定
+            currentRepetition = 0;   
+            gameState = "TRAINING";  
             
             document.getElementById('target-card').classList.remove('rest-mode');
             document.getElementById('card-header').innerText = "【當前口訣與動作】";
@@ -418,7 +488,7 @@
             document.getElementById('target-count').style.color = '#2980b9';
             
             for (let i = 0; i < 32; i++) {
-                const dot = document.getElementById(`dot-${i}`);
+                const dot = document.getElementById('dot-' + i);
                 if(dot) { dot.className = "dot"; if (i === gIdx) dot.classList.add("active"); if (i < gIdx) dot.classList.add("completed"); }
             }
             startDemoAnimation(cfg.init, cfg.target);
@@ -427,24 +497,23 @@
         function manualJump(dir) {
             let n = currentGlobalIdx + dir;
             if (n >= 0 && n < 32) {
-                gameState = "REST_LOCK"; // 鎖定判定線防崩潰
+                gameState = "REST_LOCK"; 
                 isHolding = false;
                 loadStep(n);
             }
         }
 
-        // --- 🌟 上身6點 + 下身2點 精準復康矩陣演算法 ---
-        function verify8PointsMatrix(userPoints, demoTarget) {
+        // --- 🌟 上身 4 點 ＋ 下身 2 點（共 6 點核心幾何位置矩陣比對引擎） ---
+        function verify6PointsMatrix(userPoints, demoTarget) {
             if (!demoTarget || !userPoints) return { passedCount: 0, symmetryScore: 0 };
 
-            // 計算用家的人體幾何縮放基準比例（避免因為離鏡頭遠近而誤判）
+            // 建立幾何歸一化自適應比例尺（完美消除用家與相機站立距離遠近的誤差）
             const uShoulderWidth = Math.abs(userPoints[11].x - userPoints[12].x) || 0.15;
             const uTorsoHeight = Math.abs(userPoints[11].y - userPoints[23].y) || 0.3;
 
-            // 完美映射：上身6點 ＋ 下身2點（共8點）
+            // 🎯 完全契合指定的 6 點復康核心矩陣清單
             const pointsList = [
                 { name: "leftShoulder",  id: 11 }, { name: "rightShoulder", id: 12 }, // 上身肩 2 點
-                { name: "leftElbow",     id: 13 }, { name: "rightElbow",    id: 14 }, // 上身手睜/肘 2 點
                 { name: "leftWrist",     id: 15 }, { name: "rightWrist",    id: 16 }, // 上身手腕 2 點
                 { name: "leftHip",       id: 23 }, { name: "rightHip",      id: 24 }  // 下身髖部 2 點
             ];
@@ -457,27 +526,25 @@
                 const dPt = demoTarget[pt.name];
 
                 if (uPt && dPt) {
-                    // 計算用家相對自己左肩與身體寬高的無維度比例坐標，並與公仔對比
                     const errorX = Math.abs((uPt.x - userPoints[11].x) / uShoulderWidth - (dPt.x - 0.5) * 2);
                     const errorY = Math.abs((uPt.y - userPoints[11].y) / uTorsoHeight - (dPt.y - 0.2) * 3);
                     
                     totalError += (errorX + errorY);
 
-                    // 寬容容錯區間設定：相對誤差在 0.28 內即算合格到位（長者居家友善）
-                    if (errorX < 0.28 && errorY < 0.28) {
+                    // 寬容到位判定：相對幾何誤差在 0.30 內即算合格到位
+                    if (errorX < 0.30 && errorY < 0.30) {
                         passedCount++;
                     }
                 }
             });
 
-            // 計算用家上身中正垂直與對稱得分
-            let symmetryScore = Math.max(0, Math.round(100 - (totalError * 7)));
+            let symmetryScore = Math.max(0, Math.round(100 - (totalError * 9)));
             if (symmetryScore > 100) symmetryScore = 100;
 
             return { passedCount, symmetryScore };
         }
 
-        // --- AI 運動捕捉引擎（3次擊發鎖過渡） ---
+        // --- AI 運動捕捉與防閃退過渡狀態機 ---
         function onResults(results) {
             const loadingTag = document.getElementById('loading');
             if (loadingTag) loadingTag.style.display = 'none';
@@ -487,7 +554,7 @@
             canvasCtx.save(); canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-            // 🌟 隔離鎖防線：處於 REST_LOCK 或未入鏡時，只畫線但不執行大腦切換邏輯，100% 防閃退
+            // 🌟 隔離鎖：過渡休整期直接斷開運算，保障 100% 不會閃退
             if (gameState === "REST_LOCK" || !results.poseLandmarks) {
                 if (results.poseLandmarks) {
                     drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
@@ -501,14 +568,14 @@
             drawConnectors(canvasCtx, landmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
             drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 3 });
 
-            // 實時將用家骨架送入「手睜髖部8點矩陣演算法」中比對
-            const { passedCount, symmetryScore } = verify8PointsMatrix(landmarks, globalDemoTargetPose);
+            // 執行全新的「上身4點 + 下身2點（共6點）」精準對位比對
+            const { passedCount, symmetryScore } = verify6PointsMatrix(landmarks, globalDemoTargetPose);
 
-            document.getElementById('val-a').innerText = `${passedCount} / 8 點到位`;
+            document.getElementById('val-a').innerText = `${passedCount} / 6 點到位`;
             document.getElementById('val-b').innerText = `${symmetryScore}% 正中`;
 
-            // 🌟 到位門檻：指定的 8 個定點中，只要有 5 個或以上對齊到位，進度條就開始蓄力！
-            let isStepPassed = (passedCount >= 5);
+            // 到位觸發門檻：指定的 6 大核心點中有 4 點重合到位，即算動作擺好，音遊長按蓄力條啟動
+            let isStepPassed = (passedCount >= 4);
 
             if (isStepPassed) {
                 document.getElementById('val-a').style.color = '#27ae60';
@@ -520,41 +587,41 @@
                 document.getElementById('action-progress').style.width = percentage + "%";
                 document.getElementById('target-count').innerText = `第 ${currentRepetition} 次 (${(elapsed/1000).toFixed(1)}s)`;
 
+                // 🌟 當前招式進度累積時的提示音效
                 if (Math.floor(elapsed / 150) % 2 === 0) playHoldTickSound(percentage);
 
                 if (elapsed >= requiredHoldTime) {
                     isHolding = false;
                     document.getElementById('action-progress').style.width = "0%";
                     
-                    currentRepetition++; // 本招累計成功一次
+                    currentRepetition++; 
                     
                     if (currentRepetition < 3) {
-                        // 未滿 3 次：播放小提示音，提醒長者還原姿勢、準備做下一次
                         playHoldTickSound(100); 
                         document.getElementById('target-count').innerText = `第 ${currentRepetition} / 3 次`;
-                        holdStartTime = Date.now() + 600; // 給予 0.6 秒放鬆落手的肌肉緩衝時間
+                        holdStartTime = Date.now() + 600; 
                     } else {
-                        // 🌟 解鎖高潮：做滿 3 次，立刻鎖定狀態機過渡
-                        playPerfectBellSound(); // 播放編鐘磬聲
+                        // 🌟 解鎖下一步：本微招式順利重複滿 3 次
+                        playPerfectPassGroove(); // 播放動聽的完美通關和弦
                         document.getElementById('target-count').innerText = `已完成 3 / 3 次！`;
                         document.getElementById('target-count').style.color = '#27ae60';
 
-                        // 斷開 AI 判定，進入防崩潰狀態隔離
+                        // 變更為隔離休整狀態，斷開影像判定
                         gameState = "REST_LOCK";
 
-                        // 切換右側卡片為亮綠色通關休整模式
+                        // 切換卡片樣式為亮綠色通關休整模式
                         const card = document.getElementById('target-card');
                         card.classList.add('rest-mode');
-                        document.getElementById('card-header').innerText = "🎉 正確！指定定點已做滿 3 次";
-                        document.getElementById('instruction-text').innerText = "做得非常好！本招核心八點已精準達標。\n【請完全停下休息、放鬆還原姿勢】\n3.5 秒後將安全為你解鎖切換至下一招。";
+                        document.getElementById('card-header').innerText = "🎉 正確！指定 6 點已做滿 3 次";
+                        document.getElementById('instruction-text').innerText = "做得非常好！本招核心定點已精準達標。\n【請完全停下休息、放遜還原姿勢】\n3 秒後將為你自動安全切換至下一招。";
 
-                        // 🌟 核心安全栓：在沒有影像訊號打擾的乾淨環境下異步切關，徹底根絕閃退
+                        // 🌟 防閃退核心：在主線程完全靜止的安全環境下異步切關
                         setTimeout(() => {
                             if (currentGlobalIdx < 31) {
                                 loadStep(currentGlobalIdx + 1);
                             } else {
                                 document.getElementById('instruction-text').innerText = "🎉 完美功成！全套八段錦 32 招微動作精準定位全部圓滿！";
-                                document.getElementById('target-count').innerText = "全功大成！";
+                                document.getElementById('target-count').innerText = "全功圓滿！";
                             }
                         }, 3500);
                     }
