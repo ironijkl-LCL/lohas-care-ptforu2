@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>樂活 AI 復康助手 - 八段錦精準 7 點對位版</title>
+    <title>樂活 AI 復康助手 - 八段錦精準定位版</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
@@ -11,135 +11,368 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
 
     <style>
+        :root {
+            /* Apple 視覺規範與 Oasis 色調變數 */
+            --apple-bg: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+            --apple-primary: #0071e3;
+            --apple-primary-hover: #0077ed;
+            --apple-success: #34c759;
+            --apple-warning: #ff9500;
+            --apple-text: #1d1d1f;
+            --apple-text-secondary: #86868b;
+            --glass-bg: rgba(255, 255, 255, 0.55);
+            --glass-border: solid 1px rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+            --blur-radius: 20px;
+        }
+
         body {
-            font-family: 'PingFang HK', 'Microsoft JhengHei', sans-serif;
-            background-color: #f4f7f6;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang HK", "Helvetica Neue", Arial, sans-serif;
+            background: var(--apple-bg);
+            background-attachment: fixed;
             margin: 0;
-            padding: 15px;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #2c3e50;
+            color: var(--apple-text);
+            -webkit-font-smoothing: antialiased;
         }
 
-        h1 { margin-bottom: 5px; font-size: 26px; color: #2c3e50; }
-        .subtitle { color: #7f8c8d; margin-bottom: 15px; font-size: 15px; }
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin: 0 0 8px 0;
+            color: var(--apple-text);
+            text-align: center;
+        }
 
+        .subtitle {
+            color: var(--apple-text-secondary);
+            margin-bottom: 30px;
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        /* 頂部導航與進度控制面板 (Apple 毛玻璃卡片架構) */
         .stage-selector {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-radius));
+            -webkit-backdrop-filter: blur(var(--blur-radius));
+            border: var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 1160px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
-            width: 100%;
-            max-width: 1200px;
             align-items: center;
-            background: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            gap: 12px;
         }
-        .nav-row { display: flex; gap: 10px; justify-content: center; width: 100%; align-items: center; }
+
+        .nav-row {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+        }
+
+        /* Apple 原生質感按鈕 */
         .ctrl-btn {
-            background-color: #27ae60;
-            color: white; border: none; padding: 10px 20px;
-            font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s;
+            background-color: var(--apple-text);
+            color: #ffffff;
+            border: none;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+            letter-spacing: 0.3px;
         }
-        .ctrl-btn:hover { opacity: 0.9; }
+
+        .ctrl-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .ctrl-btn:active {
+            transform: translateY(0);
+        }
         
-        .audio-toggle-btn { background-color: #e67e22; animation: pulse 2s infinite; }
-
-        .step-dots { display: flex; gap: 8px; margin-top: 5px; overflow-x: auto; max-width: 100%; padding: 5px; }
-        .dot {
-            width: 28px; height: 28px; border-radius: 50%; background: #bdc3c7; color: white;
-            display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;
-            cursor: pointer; transition: all 0.3s; flex-shrink: 0;
+        .audio-toggle-btn {
+            background-color: var(--apple-primary);
+            animation: pulse 2.5s infinite ease-in-out;
         }
-        .dot.active { background: #e67e22; transform: scale(1.15); box-shadow: 0 0 8px rgba(230,126,34,0.5); }
-        .dot.completed { background: #2980b9; }
+        
+        .audio-toggle-btn:hover {
+            background-color: var(--apple-primary-hover);
+        }
 
+        #global-progress-text {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--apple-text);
+            letter-spacing: -0.2px;
+        }
+
+        /* 圓潤無襯線進度圓點條 */
+        .step-dots {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+            overflow-x: auto;
+            padding: 6px 4px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .step-dots::-webkit-scrollbar {
+            display: none; /* Safari & Chrome */
+        }
+
+        .dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.08);
+            color: var(--apple-text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+            flex-shrink: 0;
+        }
+        .dot.active {
+            background: var(--apple-primary);
+            color: #ffffff;
+            transform: scale(1.12);
+            box-shadow: 0 4px 10px rgba(0, 113, 227, 0.3);
+        }
+        .dot.completed {
+            background: rgba(0, 113, 227, 0.15);
+            color: var(--apple-primary);
+        }
+
+        /* 主畫面膠囊式佈局 */
         .main-layout {
             display: flex;
             flex-direction: row;
-            gap: 15px;
-            max-width: 1200px;
+            gap: 20px;
+            max-width: 1160px;
             width: 100%;
             justify-content: center;
         }
 
+        /* 影像視窗與微調 */
         .video-box {
             position: relative;
-            width: 500px;
-            height: 390px;
-            background-color: #000;
-            border-radius: 12px;
+            width: 480px;
+            height: 374px;
+            background-color: #000000;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            border: var(--glass-border);
         }
         #webcam, #output_canvas {
-            position: absolute; left: 0; top: 0; width: 500px; height: 390px;
-            transform: rotateY(180deg); object-fit: cover;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 480px;
+            height: 374px;
+            transform: rotateY(180deg);
+            object-fit: cover;
         }
 
+        /* 幾何公仔示範區 */
         .demo-box {
-            width: 300px; height: 390px; background-color: #ffffff;
-            border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 10px; box-sizing: border-box;
-            border: 2px dashed #2980b9;
+            width: 280px;
+            height: 374px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-radius));
+            -webkit-backdrop-filter: blur(var(--blur-radius));
+            border: var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
         }
-        .demo-title { font-weight: bold; color: #e67e22; margin-bottom: 5px; font-size: 14px; text-align: center; }
+        .demo-title {
+            font-weight: 600;
+            color: var(--apple-primary);
+            margin-bottom: 12px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        #demo-svg {
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.03);
+            background: #ffffff;
+        }
 
+        /* 右側進階控制面板 */
         .control-panel {
-            width: 350px; background-color: #ffffff; border-radius: 12px;
-            padding: 15px; box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; justify-content: space-between;
+            width: 340px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-radius));
+            -webkit-backdrop-filter: blur(var(--blur-radius));
+            border: var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
+
         .status-badge {
-            background-color: #e8f4fd; color: #2980b9; padding: 8px;
-            border-radius: 6px; font-weight: bold; font-size: 16px; text-align: center;
+            background-color: rgba(0, 113, 227, 0.08);
+            color: var(--apple-primary);
+            padding: 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: -0.2px;
         }
         .benefit-badge {
-            background-color: #e8f8f5; color: #117a65; padding: 6px; font-size: 12px;
-            border-radius: 4px; margin-top: 5px; font-weight: bold;
+            background-color: rgba(52, 199, 89, 0.08);
+            color: #24b24b;
+            padding: 8px 10px;
+            font-size: 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-weight: 500;
+            line-height: 1.4;
         }
+
+        /* 精緻提示卡片 */
         .instruction-card {
-            background-color: #fdf6e2; border-left: 5px solid #f39c12;
-            padding: 12px; border-radius: 4px; margin: 10px 0; min-height: 90px;
-            transition: background-color 0.3s;
+            background-color: rgba(255, 149, 0, 0.06);
+            border-left: 4px solid var(--apple-warning);
+            padding: 14px;
+            border-radius: 10px;
+            margin: 14px 0;
+            min-height: 96px;
+            box-sizing: border-box;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
+        /* 做滿3次安全休息模式 */
         .instruction-card.rest-mode {
-            background-color: #d4edda; border-left-color: #28a745;
+            background-color: rgba(52, 199, 89, 0.08);
+            border-left-color: var(--apple-success);
         }
-        .instruction-card h3 { margin: 0 0 5px 0; color: #d35400; font-size: 14px; }
-        .instruction-card.rest-mode h3 { color: #155724; }
-        .instruction-card p { margin: 0; font-size: 14px; line-height: 1.4; font-weight: bold; color: #2c3e50; white-space: pre-line; }
+        .instruction-card h3 {
+            margin: 0 0 6px 0;
+            color: #d35400;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .instruction-card.rest-mode h3 {
+            color: #1a7f37;
+        }
+        .instruction-card p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: 500;
+            color: var(--apple-text);
+            white-space: pre-line;
+        }
 
-        .metric-item { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
-        .metric-value { font-weight: bold; color: #e74c3c; }
+        /* 數據欄位排版 */
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--apple-text-secondary);
+        }
+        .metric-value {
+            font-weight: 600;
+            color: #e74c3c;
+        }
         
-        .progress-container { background-color: #ecf0f1; border-radius: 10px; height: 14px; overflow: hidden; margin-top: 5px; }
-        .progress-bar { background-color: #2ecc71; height: 100%; width: 0%; transition: width 0.1s linear; }
-        .loading-tag { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; z-index: 100; }
+        /* 跑道流線型進度條 */
+        .progress-container {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .progress-bar {
+            background-color: var(--apple-success);
+            height: 100%;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .loading-tag {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            z-index: 100;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
 
-        .skeleton-part { transition: none; }
+        .skeleton-part {
+            transition: none;
+        }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); box-shadow: 0 0 12px rgba(230,126,34,0.6); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.95; box-shadow: 0 4px 15px rgba(0, 113, 227, 0.4); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 響應式優化：若螢幕寬度不足則垂直收攏 */
+        @media (max-width: 1024px) {
+            .main-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .video-box, .demo-box, .control-panel {
+                width: 100%;
+                max-width: 480px;
+            }
+            .demo-box { height: 320px; }
         }
     </style>
 </head>
 <body>
 
     <h1>樂活 AI 復康運動助手</h1>
-    <div class="subtitle">傳統八段錦【核心 7 點絕對對位・Lo-Fi 音樂卡點防卡關版】</div>
+    <div class="subtitle">傳統八段錦【手睜髖部 8 點核心定位・3次連擊流暢版】</div>
 
     <div class="stage-selector">
         <div class="nav-row">
             <button class="ctrl-btn" onclick="manualJump(-1)">◀ 上一步</button>
-            <button class="ctrl-btn audio-toggle-btn" id="audio-init-btn" onclick="initAudioSystem()">🎵 開啟背景音樂</button>
-            <div style="font-weight: bold; font-size: 16px; display: flex; align-items: center;" id="global-progress-text">關卡進度: 1 / 32</div>
+            <button class="ctrl-btn audio-toggle-btn" id="audio-init-btn" onclick="initAudioSystem()">🎵 開啟音樂與音效</button>
+            <div id="global-progress-text">關卡進度: 1 / 32</div>
             <button class="ctrl-btn" onclick="manualJump(1)">下一步 ▶</button>
         </div>
         <div class="step-dots" id="dots-container"></div>
@@ -148,52 +381,24 @@
     <div class="main-layout">
         <div class="video-box">
             <video id="webcam" autoplay playsinline muted></video>
-            <canvas id="output_canvas" width="500" height="390"></canvas>
+            <canvas id="output_canvas" width="480" height="374"></canvas>
             <div id="loading" class="loading-tag">AI 復康教練正在開門...</div>
         </div>
 
         <div class="demo-box">
             <div class="demo-title" id="demo-state-title">🔄 動態示範中...</div>
-            <svg id="demo-svg" width="200" height="290" viewBox="0 0 200 290" style="background:#fcfcfc;">
-                <line x1="20" y1="270" x2="180" y2="270" stroke="#bdc3c7" stroke-width="2"/>
-                
-                <line id="cloth-l-leg1" class="skeleton-part" x1="100" y1="150" x2="80" y2="210" stroke="#2c3e50" stroke-width="16" stroke-linecap="round"/>
-                <line id="cloth-l-leg2" class="skeleton-part" x1="80" y1="210" x2="75" y2="265" stroke="#2c3e50" stroke-width="14" stroke-linecap="round"/>
-                <line id="cloth-r-leg1" class="skeleton-part" x1="100" y1="150" x2="120" y2="210" stroke="#2c3e50" stroke-width="16" stroke-linecap="round"/>
-                <line id="cloth-r-leg2" class="skeleton-part" x1="120" y1="210" x2="125" y2="265" stroke="#2c3e50" stroke-width="14" stroke-linecap="round"/>
-                
-                <rect id="cloth-body" class="skeleton-part" x="72" y="64" width="56" height="92" rx="14" fill="#ffffff" stroke="#bdc3c7" stroke-width="2"/>
-                <rect id="cloth-belt" class="skeleton-part" x="70" y="142" width="60" height="12" fill="#e74c3c" rx="2"/>
-                <circle id="cloth-head" class="skeleton-part" cx="100" cy="46" r="15" fill="#fddcca" stroke="#34495e" stroke-width="1.5"/>
-
-                <line id="cloth-l-arm1" class="skeleton-part" x1="100" y1="78" x2="70" y2="115" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
-                <line id="cloth-l-arm2" class="skeleton-part" x1="70" y1="115" x2="50" y2="150" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
-                <line id="cloth-r-arm1" class="skeleton-part" x1="100" y1="78" x2="130" y2="115" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
-                <line id="cloth-r-arm2" class="skeleton-part" x1="130" y1="115" x2="150" y2="150" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
-
-                <circle id="cloth-l-hand" class="skeleton-part" cx="50" cy="150" r="8" fill="#fddcca"/>
-                <circle id="cloth-r-hand" class="skeleton-part" cx="150" cy="150" r="8" fill="#fddcca"/>
-                <ellipse id="cloth-l-shoe" class="skeleton-part" cx="73" cy="268" rx="10" ry="5" fill="#34495e"/>
-                <ellipse id="cloth-r-shoe" class="skeleton-part" cx="127" cy="268" rx="10" ry="5" fill="#34495e"/>
-
-                <line id="demo-neck" class="skeleton-part" x1="100" y1="46" x2="100" y2="78" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-body" class="skeleton-part" x1="100" y1="78" x2="100" y2="150" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-left-arm1" class="skeleton-part" x1="100" y1="78" x2="70" y2="115" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-left-arm2" class="skeleton-part" x1="70" y1="115" x2="50" y2="150" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-right-arm1" class="skeleton-part" x1="100" y1="78" x2="130" y2="115" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-right-arm2" class="skeleton-part" x1="130" y1="115" x2="150" y2="150" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-l-leg1" class="skeleton-part" x1="100" y1="150" x2="80" y2="210" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-l-leg2" class="skeleton-part" x1="80" y1="210" x2="75" y2="265" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-r-leg1" class="skeleton-part" x1="100" y1="150" x2="120" y2="210" stroke="#00FF00" stroke-width="3"/>
-                <line id="demo-r-leg2" class="skeleton-part" x1="120" y1="210" x2="125" y2="265" stroke="#00FF00" stroke-width="3"/>
-
-                <circle id="joint-head" class="skeleton-part" cx="100" cy="46" r="4.5" fill="#FF0000"/> 
-                <circle id="joint-l-shoulder" class="skeleton-part" cx="100" cy="78" r="4.5" fill="#FF0000"/> 
-                <circle id="joint-r-shoulder" class="skeleton-part" cx="100" cy="78" r="4.5" fill="#FF0000"/> 
-                <circle id="joint-l-wrist" class="skeleton-part" cx="50" cy="150" r="4.5" fill="#FF0000"/> 
-                <circle id="joint-r-wrist" class="skeleton-part" cx="150" cy="150" r="4.5" fill="#FF0000"/> 
-                <circle id="joint-l-hip" class="skeleton-part" cx="100" cy="150" r="4.5" fill="#FF0000"/> 
-                <circle id="joint-r-hip" class="skeleton-part" cx="100" cy="150" r="4.5" fill="#FF0000"/> 
+            <svg id="demo-svg" width="200" height="290" viewBox="0 0 200 290">
+                <line x1="20" y1="270" x2="180" y2="270" stroke="#e4e8eb" stroke-width="2"/>
+                <circle id="demo-head" class="skeleton-part" cx="100" cy="50" r="14" fill="#1d1d1f"/>
+                <line id="demo-body" class="skeleton-part" x1="100" y1="64" x2="100" y2="160" stroke="#1d1d1f" stroke-width="7"/>
+                <line id="demo-l-leg1" class="skeleton-part" x1="100" y1="160" x2="80" y2="210" stroke="#1d1d1f" stroke-width="5"/>
+                <line id="demo-l-leg2" class="skeleton-part" x1="80" y1="210" x2="75" y2="270" stroke="#1d1d1f" stroke-width="5"/>
+                <line id="demo-r-leg1" class="skeleton-part" x1="100" y1="160" x2="120" y2="210" stroke="#1d1d1f" stroke-width="5"/>
+                <line id="demo-r-leg2" class="skeleton-part" x1="120" y1="210" x2="125" y2="270" stroke="#1d1d1f" stroke-width="5"/>
+                <line id="demo-left-arm1" class="skeleton-part" x1="100" y1="80" x2="70" y2="120" stroke="#0071e3" stroke-width="5"/>
+                <line id="demo-left-arm2" class="skeleton-part" x1="70" y1="120" x2="50" y2="160" stroke="#0071e3" stroke-width="5"/>
+                <line id="demo-right-arm1" class="skeleton-part" x1="100" y1="80" x2="130" y2="120" stroke="#0071e3" stroke-width="5"/>
+                <line id="demo-right-arm2" class="skeleton-part" x1="130" y1="120" x2="150" y2="160" stroke="#0071e3" stroke-width="5"/>
             </svg>
         </div>
 
@@ -201,92 +406,61 @@
             <div>
                 <div class="status-badge" id="main-badge">第一式</div>
                 <div class="benefit-badge" id="benefit-text">好處：加載中...</div>
+           
                 <div class="instruction-card" id="target-card">
                     <h3 id="card-header">【當前口訣與動作】</h3>
                     <p id="instruction-text">加載中...</p>
                 </div>
+                
                 <div class="metrics">
-                    <div class="metric-item"><span id="lbl-a">核心關節高度差：</span><span class="metric-value" id="val-a">計算中</span></div>
-                    <div class="metric-item"><span id="lbl-b">雙手伸展夾角：</span><span class="metric-value" id="val-b">0°</span></div>
-                    <div class="metric-item"><span>本招重複進度：</span><span id="target-count" style="font-weight:bold; color:#2980b9;">第 0 / 3 次</span></div>
+                    <div class="metric-item"><span id="lbl-a">8大定點到位率：</span><span class="metric-value" id="val-a">0 / 8 點</span></div>
+                    <div class="metric-item"><span id="lbl-b">上身重心平衡度：</span><span class="metric-value" id="val-b">0%</span></div>
+                    <div class="metric-item"><span>本招重複進度：</span><span id="target-count" style="font-weight:600; color:var(--apple-primary);">第 0 / 3 次</span></div>
                     <div class="progress-container"><div class="progress-bar" id="action-progress"></div></div>
                 </div>
             </div>
-            <div style="font-size:12px; color:#95a5a6; text-align:center; margin-top:8px;" id="help-desc">
-                AI 正在以絕對角度與高度深度比對動作...
+            <div style="font-size:12px; color:var(--apple-text-secondary); text-align:center; margin-top:12px;" id="help-desc">
+                AI 正在對比手睜、髖部等 8 點核心定格位置...
             </div>
         </div>
     </div>
 
     <script>
-        // --- 🌟 動聽背景 Lo-Fi 電子爵士輕快伴奏音樂引擎 ---
-        let audioCtx = null; let musicSeqId = null; let beatCount = 0;
-        const CHORDS = [
-            { bass: 73.42, Arpeggio: [146.83, 220.00, 293.66, 440.00] }, 
-            { bass: 87.31, Arpeggio: [164.81, 220.00, 329.63, 440.00] }, 
-            { bass: 98.00, Arpeggio: [196.00, 293.66, 392.00, 587.33] }  
-        ];
-
+        // --- WEB AUDIO API AUDIO ENGINE ---
+        let audioCtx = null; let bgmOscillator = null; let bgmGain = null;
         function initAudioSystem() {
             if (audioCtx) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const tempoInterval = 272; 
-            
-            function playNextBeat() {
-                const now = audioCtx.currentTime;
-                const chordIdx = Math.floor(beatCount / 16) % CHORDS.length;
-                const currentChord = CHORDS[chordIdx];
-
-                if (beatCount % 4 === 0) {
-                    let bassOsc = audioCtx.createOscillator(); let bassGain = audioCtx.createGain();
-                    bassOsc.type = 'triangle'; bassOsc.frequency.setValueAtTime(currentChord.bass, now);
-                    bassGain.gain.setValueAtTime(0.25, now); bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-                    bassOsc.connect(bassGain); bassGain.connect(audioCtx.destination); bassOsc.start(now); bassOsc.stop(now + 0.6);
-                }
-
-                if (beatCount % 2 === 0 || Math.random() > 0.6) {
-                    let melOsc = audioCtx.createOscillator(); let melGain = audioCtx.createGain();
-                    let note = currentChord.Arpeggio[Math.floor(Math.random() * currentChord.Arpeggio.length)];
-                    melOsc.type = 'sine'; melOsc.frequency.setValueAtTime(note, now);
-                    melGain.gain.setValueAtTime(0.05, now); melGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-                    melOsc.connect(melGain); melGain.connect(audioCtx.destination); melOsc.start(now); melOsc.stop(now + 0.4);
-                }
-
-                if (beatCount % 2 === 0) {
-                    let noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.04, audioCtx.sampleRate);
-                    let output = noiseBuffer.getChannelData(0);
-                    for (let i = 0; i < noiseBuffer.length; i++) output[i] = Math.random() * 2 - 1;
-                    let whiteNoise = audioCtx.createBufferSource(); whiteNoise.buffer = noiseBuffer;
-                    let noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.015, now);
-                    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-                    whiteNoise.connect(noiseGain); noiseGain.connect(audioCtx.destination); whiteNoise.start(now);
-                }
-
-                beatCount++; musicSeqId = setTimeout(playNextBeat, tempoInterval);
-            }
-            playNextBeat();
-
-            const audioBtn = document.getElementById('audio-init-btn');
-            audioBtn.innerText = "🎵 背景音樂伴奏中"; audioBtn.style.backgroundColor = "#2980b9"; audioBtn.style.animation = "none";
+            bgmGain = audioCtx.createGain(); bgmGain.gain.setValueAtTime(0.04, audioCtx.currentTime); bgmGain.connect(audioCtx.destination);
+            bgmOscillator = audioCtx.createOscillator(); bgmOscillator.type = 'triangle'; bgmOscillator.frequency.setValueAtTime(146.83, audioCtx.currentTime); bgmOscillator.connect(bgmGain); bgmOscillator.start();
+            const audioBtn = document.getElementById('audio-init-btn'); audioBtn.innerText = "🎵 音樂播音中"; audioBtn.style.backgroundColor = "var(--apple-success)"; audioBtn.style.animation = "none";
         }
-
-        // 滿 3 次過渡時播放明朗的大三和弦音遊通關節奏
-        function playPerfectPassGroove() {
-            if (!audioCtx) return; const now = audioCtx.currentTime;
-            [293.66, 369.99, 440.00, 587.33].forEach((freq, idx) => {
+    
+        function playHoldTickSound(p) {
+            if (!audioCtx) return;
+            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(380 + (p * 4), audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+        }
+        
+        function playPerfectBellSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            [523.25, 783.99, 1046.50].forEach((f, idx) => {
                 let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + (idx * 0.05));
-                gain.gain.setValueAtTime(0.12, now + (idx * 0.05)); gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now + (idx * 0.05)); osc.stop(now + 1.0);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(f, now);
+                gain.gain.setValueAtTime(idx === 0 ? 0.18 : 0.06, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(now + 1.2);
             });
         }
 
-        function playHoldTickSound(p) {
-            // 已完全遵照要求移除原本刺耳的水滴粒子聲，交給畫面進度條呈現
-        }
+        // --- 核心動態示範插值引擎 ---
+        let animFrameId = null;
+        let animTime = 0;
+        let globalDemoTargetPose = null; 
 
-        // --- 動態示範數學插值與雙圖層骨骼引擎 ---
-        let animFrameId = null; let animTime = 0; let globalDemoTargetPose = null; 
         function lerp(start, end, amt){ return (1 - amt) * start + amt * end; }
 
         function startDemoAnimation(initFrameFn, targetFrameFn) {
@@ -294,12 +468,10 @@
             animTime = 0;
 
             function renderLoop() {
-                animTime += 0.025; 
-                let t = (Math.sin(animTime - Math.PI / 2) + 1) / 2; 
-
-                const startPose = initFrameFn ? initFrameFn() : { arm:[75,120,70,165,125,120,130,165], leg:[80,210,75,270,120,210,125,270], body:[100,50,100,100,160] };
-                const endPose = targetFrameFn ? targetFrameFn() : startPose;
-
+                animTime += 0.02;
+                let t = (Math.sin(animTime - Math.PI / 2) + 1) / 2;
+                const startPose = (initFrameFn && typeof initFrameFn === 'function') ? initFrameFn() : { arm:[75,120,70,165,125,120,130,165], leg:[80,210,75,270,120,210,125,270], body:[100,50,100,100,160] };
+                const endPose = (targetFrameFn && typeof targetFrameFn === 'function') ? targetFrameFn() : startPose;
                 let currentArm = {
                     x11: lerp(startPose.arm[0], endPose.arm[0], t), y11: lerp(startPose.arm[1], endPose.arm[1], t),
                     x12: lerp(startPose.arm[2], endPose.arm[2], t), y12: lerp(startPose.arm[3], endPose.arm[3], t),
@@ -316,80 +488,46 @@
                     hx: lerp(startPose.body[0], endPose.body[0], t), hy: lerp(startPose.body[1], endPose.body[1], t),
                     bx1: lerp(startPose.body[2], endPose.body[2], t), bx2: lerp(startPose.body[3], endPose.body[3], t), by2: lerp(startPose.body[4], endPose.body[4], t)
                 };
-
+                
+                // 🌟 標準化幾何藍圖對位轉換（上身6點 ＋ 下身2點）
                 globalDemoTargetPose = {
-                    head:          { x: currentBody.hx/200, y: currentBody.hy/290 }, 
-                    leftShoulder:  { x: currentArm.x11/200, y: currentArm.y11/290 }, 
-                    rightShoulder: { x: currentArm.x21/200, y: currentArm.y21/290 }, 
-                    leftWrist:     { x: currentArm.x12/200, y: currentArm.y12/290 }, 
-                    rightWrist:    { x: currentArm.x22/200, y: currentArm.y22/290 },
-                    leftHip:       { x: currentLeg.x11/200, y: currentLeg.y11/290 },  
-                    rightHip:      { x: currentLeg.x21/200, y: currentLeg.y21/290 }   
+                    leftShoulder:  { x: currentArm.x11/200, y: currentArm.y11/290 },
+                    rightShoulder: { x: currentArm.x21/200, y: currentArm.y21/290 },
+                    leftElbow:     { x: currentArm.x12/200, y: currentArm.y12/290 }, 
+                    rightElbow:    { x: currentArm.x22/200, y: currentArm.y22/290 }, 
+                    leftWrist:     { x: (currentArm.x12 - 12)/200, y: (currentArm.y12 + 25)/290 }, 
+                    rightWrist:    { x: (currentArm.x22 + 12)/200, y: (currentArm.y22 + 25)/290 },
+                    leftHip:       { x: currentLeg.x11/200, y: currentLeg.y11/290 }, 
+                    rightHip:      { x: currentLeg.x21/200, y: currentLeg.y21/290 }  
                 };
-
-                applyHybridGrownCoach(currentArm, currentLeg, currentBody);
+                applyArmPoints(currentArm); applyLegPoints(currentLeg); applyBodyPoints(currentBody);
                 animFrameId = requestAnimationFrame(renderLoop);
             }
             renderLoop();
         }
 
-        function applyHybridGrownCoach(arm, leg, body) {
-            document.getElementById('cloth-l-arm1').setAttribute("x2", arm.x11); document.getElementById('cloth-l-arm1').setAttribute("y2", arm.y11);
-            document.getElementById('cloth-l-arm2').setAttribute("x1", arm.x11); document.getElementById('cloth-l-arm2').setAttribute("y1", arm.y11);
-            document.getElementById('cloth-l-arm2').setAttribute("x2", arm.x12); document.getElementById('cloth-l-arm2').setAttribute("y2", arm.y12);
-            document.getElementById('cloth-r-arm1').setAttribute("x2", arm.x21); document.getElementById('cloth-r-arm1').setAttribute("y2", arm.y21);
-            document.getElementById('cloth-r-arm2').setAttribute("x1", arm.x21); document.getElementById('cloth-r-arm2').setAttribute("y1", arm.y21);
-            document.getElementById('cloth-r-arm2').setAttribute("x2", arm.x22); document.getElementById('cloth-r-arm2').setAttribute("y2", arm.y22);
-
-            document.getElementById('cloth-l-hand').setAttribute("cx", arm.x12); document.getElementById('cloth-l-hand').setAttribute("cy", arm.y12);
-            document.getElementById('cloth-r-hand').setAttribute("cx", arm.x22); document.getElementById('cloth-r-hand').setAttribute("cy", arm.y22);
-
-            document.getElementById('cloth-l-leg1').setAttribute("x2", leg.x11); document.getElementById('cloth-l-leg1').setAttribute("y2", leg.y21);
-            document.getElementById('cloth-l-leg2').setAttribute("x1", leg.x11); document.getElementById('cloth-l-leg2').setAttribute("y1", leg.y21);
-            document.getElementById('cloth-l-leg2').setAttribute("x2", leg.x12); document.getElementById('cloth-l-leg2').setAttribute("y2", leg.y12);
-            document.getElementById('cloth-r-leg1').setAttribute("x2", leg.x21); document.getElementById('cloth-r-leg1').setAttribute("y2", leg.y21);
-            document.getElementById('cloth-r-leg2').setAttribute("x1", leg.x21); document.getElementById('cloth-r-leg2').setAttribute("y1", leg.y21);
-            document.getElementById('cloth-r-leg2').setAttribute("x2", leg.x22); document.getElementById('cloth-r-leg2').setAttribute("y2", leg.y22);
-
-            document.getElementById('cloth-l-shoe').setAttribute("cx", leg.x12); document.getElementById('cloth-l-shoe').setAttribute("cy", leg.y12 + 4);
-            document.getElementById('cloth-r-shoe').setAttribute("cx", leg.x22); document.getElementById('cloth-r-shoe').setAttribute("cy", leg.y22 + 4);
-
-            document.getElementById('cloth-head').setAttribute("cx", body.hx); document.getElementById('cloth-head').setAttribute("cy", body.hy);
-            document.getElementById('cloth-body').setAttribute("x", body.hx - 28); document.getElementById('cloth-body').setAttribute("y", body.hy + 14);
-            document.getElementById('cloth-belt').setAttribute("x", body.hx - 30); document.getElementById('cloth-belt').setAttribute("y", body.hy + 92);
-
-            document.getElementById('demo-neck').setAttribute("x1", body.hx); document.getElementById('demo-neck').setAttribute("y1", body.hy);
-            document.getElementById('demo-neck').setAttribute("x2", body.hx); document.getElementById('demo-neck').setAttribute("y2", body.hy + 28);
-            document.getElementById('demo-body').setAttribute("x1", body.hx); document.getElementById('demo-body').setAttribute("y1", body.hy + 28);
-            document.getElementById('demo-body').setAttribute("x2", body.bx2); document.getElementById('demo-body').setAttribute("y2", body.by2 - 10);
-
-            document.getElementById('demo-left-arm1').setAttribute("x1", body.hx - 15); document.getElementById('demo-left-arm1').setAttribute("y1", body.hy + 28);
-            document.getElementById('demo-left-arm1').setAttribute("x2", arm.x11); document.getElementById('demo-left-arm1').setAttribute("y2", arm.y11);
-            document.getElementById('demo-left-arm2').setAttribute("x1", arm.x11); document.getElementById('demo-left-arm2').setAttribute("y1", arm.y11);
-            document.getElementById('demo-left-arm2').setAttribute("x2", arm.x12); document.getElementById('demo-left-arm2').setAttribute("y2", arm.y12);
-
-            document.getElementById('demo-right-arm1').setAttribute("x1", body.hx + 15); document.getElementById('demo-right-arm1').setAttribute("y1", body.hy + 28);
-            document.getElementById('demo-right-arm1').setAttribute("x2", arm.x21); document.getElementById('demo-right-arm1').setAttribute("y2", arm.y21);
-            document.getElementById('demo-right-arm2').setAttribute("x1", arm.x21); document.getElementById('demo-right-arm2').setAttribute("y1", arm.y21);
-            document.getElementById('demo-right-arm2').setAttribute("x2", arm.x22); document.getElementById('demo-right-arm2').setAttribute("y2", arm.y22);
-
-            document.getElementById('demo-l-leg1').setAttribute("x1", body.bx2 - 15); document.getElementById('demo-l-leg1').setAttribute("y1", body.by2 - 10);
-            document.getElementById('demo-l-leg1').setAttribute("x2", leg.x11); document.getElementById('demo-l-leg1').setAttribute("y2", leg.y21);
-            document.getElementById('demo-l-leg2').setAttribute("x1", leg.x11); document.getElementById('demo-l-leg2').setAttribute("y1", leg.y21);
-            document.getElementById('demo-l-leg2').setAttribute("x2", leg.x12); document.getElementById('demo-l-leg2').setAttribute("y2", leg.y12);
-
-            document.getElementById('demo-r-leg1').setAttribute("x1", body.bx2 + 15); document.getElementById('demo-r-leg1').setAttribute("y1", body.by2 - 10);
-            document.getElementById('demo-r-leg1').setAttribute("x2", leg.x21); document.getElementById('demo-r-leg1').setAttribute("y2", leg.y21);
-            document.getElementById('demo-r-leg2').setAttribute("x1", leg.x21); document.getElementById('demo-r-leg2').setAttribute("y1", leg.y21);
-            document.getElementById('demo-r-leg2').setAttribute("x2", leg.x22); document.getElementById('demo-r-leg2').setAttribute("y2", leg.y22);
-
-            document.getElementById('joint-head').setAttribute("cx", body.hx); document.getElementById('joint-head').setAttribute("cy", body.hy);
-            document.getElementById('joint-l-shoulder').setAttribute("cx", body.hx - 15); document.getElementById('joint-l-shoulder').setAttribute("cy", body.hy + 28);
-            document.getElementById('joint-r-shoulder').setAttribute("cx", body.hx + 15); document.getElementById('joint-r-shoulder').setAttribute("cy", body.hy + 28);
-            document.getElementById('joint-l-wrist').setAttribute("cx", arm.x12); document.getElementById('joint-l-wrist').setAttribute("cy", arm.y12);
-            document.getElementById('joint-r-wrist').setAttribute("cx", arm.x22); document.getElementById('joint-r-wrist').setAttribute("cy", arm.y22);
-            document.getElementById('joint-l-hip').setAttribute("cx", body.bx2 - 15); document.getElementById('joint-l-hip').setAttribute("cy", body.by2 - 10);
-            document.getElementById('joint-r-hip').setAttribute("cx", body.bx2 + 15); document.getElementById('joint-r-hip').setAttribute("cy", body.by2 - 10);
+        function applyArmPoints(p) {
+            document.getElementById('demo-left-arm1').setAttribute("x2", p.x11);
+            document.getElementById('demo-left-arm1').setAttribute("y2", p.y11);
+            document.getElementById('demo-left-arm2').setAttribute("x1", p.x11); document.getElementById('demo-left-arm2').setAttribute("y1", p.y11);
+            document.getElementById('demo-left-arm2').setAttribute("x2", p.x12); document.getElementById('demo-left-arm2').setAttribute("y2", p.y12);
+            document.getElementById('demo-right-arm1').setAttribute("x2", p.x21); document.getElementById('demo-right-arm1').setAttribute("y2", p.y21);
+            document.getElementById('demo-right-arm2').setAttribute("x1", p.x21); document.getElementById('demo-right-arm2').setAttribute("y1", p.y21);
+            document.getElementById('demo-right-arm2').setAttribute("x2", p.x22); document.getElementById('demo-right-arm2').setAttribute("y2", p.y22);
+        }
+        function applyLegPoints(p) {
+            document.getElementById('demo-l-leg1').setAttribute("x2", p.x11);
+            document.getElementById('demo-l-leg1').setAttribute("y2", p.y11);
+            document.getElementById('demo-l-leg2').setAttribute("x1", p.x11); document.getElementById('demo-l-leg2').setAttribute("y1", p.y11);
+            document.getElementById('demo-l-leg2').setAttribute("x2", p.x12); document.getElementById('demo-l-leg2').setAttribute("y2", p.y12);
+            document.getElementById('demo-r-leg1').setAttribute("x2", p.x21); document.getElementById('demo-r-leg1').setAttribute("y2", p.y21);
+            document.getElementById('demo-r-leg2').setAttribute("x1", p.x21); document.getElementById('demo-r-leg2').setAttribute("y1", p.y21);
+            document.getElementById('demo-r-leg2').setAttribute("x2", p.x22); document.getElementById('demo-r-leg2').setAttribute("y2", p.y22);
+        }
+        function applyBodyPoints(p) {
+            document.getElementById('demo-head').setAttribute("cx", p.hx);
+            document.getElementById('demo-head').setAttribute("cy", p.hy);
+            document.getElementById('demo-body').setAttribute("x1", p.bx1); document.getElementById('demo-body').setAttribute("x2", p.bx2); document.getElementById('demo-body').setAttribute("y2", p.by2);
         }
 
         // --- 全套 32 微動作大資料庫 ---
@@ -397,55 +535,76 @@
         const BASE_ARM = [75,120,70,165, 125,120,130,165];
         const BASE_LEG = [80,210,75,270, 120,210,125,270];
         const BASE_BODY = [100,50,100,100,160];
-
         const RAW_DATA = [
             {
                 title: "第一式：兩手托天理三焦", benefit: "促進全身氣血循環，拉伸脊椎，調理三焦。",
                 steps: [
-                    {口訣:"十指交叉雙手托", 動作:"兩手在腹前十指交叉，掌心向上提起至胸前。", 指標A:"手腕在胸腹間", 指標B:"雙肩微沉就位"},
-                    {口訣:"翻掌朝天向上拉", 動作:"在胸前翻掌向上托起，手臂向上推伸。", 指標A:"手腕超越肩膀", 指標B:"雙肘向上拔展"},
-                    {口訣:"提踵仰頭望手背", 動作:"手臂儘量打直，抬頭看手背，腳後跟微提。", 指標A:"手腕高過頭頂", 指標B:"雙手挺直高度"},
-                    {口訣:"調理三焦氣機通", 動作:"雙手分開，從兩側緩緩劃圈落下還原。", 指標A:"兩手橫向兩側", 指標B:"垂落還原身側"}
+                    {口訣:"十指交叉雙手托", 動作:"兩手在腹前十指交叉，掌心向上提起至胸前。", 指標A:"手腕在腹胸前", 指標B:"手腕距離收緊", 提示:"兩手在胸口收攏相交。", 
+                     init: () => ({ arm:[70,120,65,165, 130,120,135,165], leg:BASE_LEG, body:BASE_BODY }),
+                     target: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:BASE_LEG, body:BASE_BODY })},
+                    {口訣:"翻掌朝天向上拉", 動作:"在胸前翻掌向上托起，手臂向上推伸。", 指標A:"手腕超越肩膀", 指標B:"手肘伸展角度", 提示:"雙手向上前方推高。",
+                     init: () => ({ arm:[85,110,100,120, 115,110,100,120], leg:BASE_LEG, body:BASE_BODY }),
+                     target: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:BASE_LEG, body:BASE_BODY })},
+                    {口訣:"提踵仰頭望手背", 動作:"手臂儘量打直，抬頭看手背，腳後跟微提。", 指標A:"雙側手睜拔直", 指標B:"雙髖重心穩定", 提示:"精準到位：注意手睜向上完全外展，下肢髖部中正站穩。",
+                     init: () => ({ arm:[80,70,75,30, 120,70,125,30], leg:BASE_LEG, body:BASE_BODY }),
+                     target: () => ({ arm:[80,40,80,5, 120,40,120,5], leg:[80,200,75,260, 120,200,125,260], body:[100,45,100,100,150] })},
+                    {口訣:"調理三焦氣機通", 動作:"雙手分開，從兩側緩緩劃圈落下還原。", 指標A:"手腕橫向外展", 指標B:"雙手降回兩側", 提示:"雙臂向身體兩側大範圍弧形垂下。",
+                     init: () => ({ arm:[80,40,80,5, 120,40,120,5], leg:[80,200,75,260, 120,200,125,260], body:[100,45,100,100,150] }),
+                     target: () => ({ arm:[60,110,40,150, 140,110,160,150], leg:BASE_LEG, body:BASE_BODY })}
                 ]
             },
             {
                 title: "第二式：左右開弓似射雕", benefit: "發展下肢力量，擴胸伸展，宣肺理氣。",
                 steps: [
-                    {口訣:"馬步下蹲左弓手", 動作:"雙腳向兩側跨開，身體下蹲成馬步，雙手交叉於胸前準備。", 指標A:"雙手胸前交叉", 指標B:"馬步重心降低"},
-                    {口訣:"右手拉弦如射雕", 動作:"左手食指豎起向左推出，右手如拉弓弦拉至右肩前，眼看左手。", 指標A:"左臂外展拉直", 指標B:"右肘深折拉弦"},
-                    {口訣:"眼神凝視遠方處", 動作:"保持馬步拉弓，定格，眼神堅定凝視左手前方。", 指標A:"左手平推水平", 指標B:"擴胸挺拔定格"},
-                    {口訣:"宣肺理氣寬胸襟", 動作:"雙手放鬆，起身直立，雙腳收回還原。", 指標A:"雙腿直立起", 指標B:"雙手放鬆垂落"}
+                    {口訣:"馬步下蹲左弓手", 動作:"雙腳向兩側跨開，身體下蹲成馬步，雙手交叉於胸前準備。", 指標A:"骨盆馬步高度", 指標B:"雙臂胸前相交", 提示:"下蹲呈馬步，雙手交叉在胸前抱球。", 
+                     init: () => ({ arm:BASE_ARM, leg:BASE_LEG, body:BASE_BODY }),
+                     target: () => ({ arm:[85,100,75,120, 115,100,125,120], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
+                    {口訣:"右手拉弦如射雕", 動作:"左手食指豎起向左推出，右手如拉弓弦拉至右肩前，眼看左手。", 指標A:"左側手睜平推度", 指標B:"右側手睜後折度", 提示:"8點對位：左臂手睜與手腕向左平舉拉展到位，雙髖扣穩。",
+                     init: () => ({ arm:[85,100,75,120, 115,100,125,120], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
+                     target: () => ({ arm:[50,90,10,90, 120,90,145,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
+                    {口訣:"眼神凝視遠方處", 動作:"保持馬步拉弓，定格，眼神堅定凝視左手前方。", 指標A:"雙臂拉弓對稱", 指標B:"雙髖馬步扎實", 提示:"穩住上身，核心雙髖保持中正不動。",
+                     init: () => ({ arm:[50,90,10,90, 120,90,145,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
+                     target: () => ({ arm:[45,90,5,90, 120,90,150,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] })},
+                    {口訣:"宣肺理氣寬胸襟", 動作:"雙手放鬆，起身直立，雙腳收回還原。", 指標A:"直立起雙腿", 指標B:"雙手落回身側", 提示:"緩慢起立，全身放鬆收回基本站姿。",
+                     init: () => ({ arm:[45,90,5,90, 120,90,150,115], leg:[70,210,50,270, 130,210,150,270], body:[100,60,100,100,150] }),
+                     target: () => ({ arm:BASE_ARM, leg:BASE_LEG, body:BASE_BODY })}
                 ]
             }
         ];
-
         const EXT_DATA = [
-            { title:"第三式：調理脾胃須單舉", benefit:"牽動腹腔，按摩脾胃。", steps:[{k:"一手頂天一手按",d:"左手翻掌上舉，右手下按雙向對沖。"},{k:"指尖對應力對沖",d:"雙掌用力對拉，左手腕儘量拔高。"},{k:"右升左降交替練",d:"雙手交替在胸前抱球過渡，準備換邊。"},{k:"調理脾胃效無窮",d:"換右手一側上舉，左手下按動作。"}] },
+            { title:"第三式：調理脾胃須單舉", benefit:"牽動腹腔，按摩脾胃。", steps:[{k:"一手頂天一手按",d:"左手翻掌上舉，右手下按雙向對沖。"},{k:"指尖對應力對沖",d:"雙掌用力對拉，左手睜儘量挺直. "},{k:"右升左降交替練",d:"雙手交替在胸前抱球過渡，準備換邊。"},{k:"調理脾胃效無窮",d:"換右手一側上舉，左手下按動作。"}] },
             { title:"第四式：五勞七傷往後瞧", benefit:"放鬆頸椎，舒緩雙肩疲勞。", steps:[{k:"轉頭扭頸後方瞧",d:"身體直立，頭緩緩向左後方轉動眼看後方。"},{k:"轉臂旋腕莫動搖",d:"雙臂向外旋轉，拉開肩胸經絡。"},{k:"舒緩經絡除疲勞",d:"保持向後瞧姿勢定格，深度呼吸放鬆。"},{k:"五勞七傷一併消",d:"頭部與雙臂旋回前方，上身正中放鬆。"}] },
             { title:"第五式：搖頭擺尾去心火", benefit:"活動脊椎下引心火。", steps:[{k:"馬步寬大雙手按",d:"邁大馬步下蹲，雙手虎口扶在膝蓋上。"},{k:"搖頭晃身尾閭擺",d:"身體前傾，頭向左前方搖晃微旋。"},{k:"降火滋陰通經脈",d:"臀部尾閭向右擺，脊椎流暢扭動。"},{k:"心清氣爽身自在",d:"起立回正，雙腳收回恢復基本站姿。"}] },
             { title:"第六式：兩手攀足固腎腰", benefit:"強壯腰膝、固攝腎氣。", steps:[{k:"雙手反拉貼背下",d:"雙手高舉後貼著後背臀部向下摩運。"},{k:"沿腿向下攀足尖",d:"前屈折疊，雙手順大腿後側向下攀足尖。"},{k:"挺胸直脊引氣血",d:"雙手攀足尖，雙腿保持直立拉伸。"},{k:"固腎壯腰身手健",d:"緩緩直立起身，恢復正中站姿。"}] },
-            { title:"第七式：攢拳怒目增氣力", benefit:"舒肝理氣、增長金剛力。", steps:[{k:"馬步穩扎出拳快",d:"扎穩馬步，左拳向前緩緩猛烈衝出。"},{k:"瞪眼怒目氣力增",d:"雙眼睜大，怒目凝視前方。"},{k:"抓握有力收拳穩",d:"左手變掌抓拳收回，換右拳衝出。"},{k:"疏肝理氣顯神威",d:"收拳起立回正，全身放鬆。"}] },
+            { title:"第七式：攢拳怒目增氣力", benefit:"舒肝理氣、增長金剛力。", steps:[{k:"馬步穩扎出拳快",d:"扎穩馬步，左拳向前緩緩猛烈衝出。"},{k:"瞪眼怒目氣力增",d:"雙眼睜大，怒目凝視前方。"},{k:"抓握有力收拳穩",d:"左手變掌抓拳收回，換右拳衝出。"},{k:"疏肝理氣显神威",d:"收拳起立回正，全身放鬆。"}] },
             { title:"第八式：背後七顛百病消", benefit:"震盪脊椎，消除百病。", steps:[{k:"腳跟提起莫動搖",d:"雙腳併攏，腳後跟緩緩提起提起抬高。"},{k:"百會上頂全身高",d:"百會穴上頂保持筆直平衡。"},{k:"輕輕落地震一下",d:"腳跟放鬆落地，使身體受到微小震動。"},{k:"全身放鬆百病消",d:"雙手重歸身側，放鬆收功。"}] }
         ];
 
-        // 扁平化展開
+        // 展開數據
         RAW_DATA.forEach((item, sIdx) => {
             item.steps.forEach((st, stepIdx) => {
                 ALL_32_STEPS.push({
                     globalIdx: ALL_32_STEPS.length, mainTitle: item.title, benefit: item.benefit,
                     badge: `第 ${sIdx+1} 式：微動作 ${stepIdx+1}/4`, desc: `【口訣】${st.口訣}\n【要領】${st.動作}`,
-                    lblA: st.指標A, lblB: st.指標B, mainIdx: sIdx, subIdx: stepIdx
+                    lblA: st.指標A, lblB: st.指標B, help: st.提示, init: st.init, target: st.target, mainIdx: sIdx, subIdx: stepIdx
                 });
             });
         });
-
         EXT_DATA.forEach((item, sIdx) => {
             const realIdx = sIdx + 2;
             item.steps.forEach((st, stepIdx) => {
                 ALL_32_STEPS.push({
                     globalIdx: ALL_32_STEPS.length, mainTitle: item.title, benefit: item.benefit,
                     badge: `第 ${realIdx+1} 式：微動作 ${stepIdx+1}/4`, desc: `【口訣】${st.k}\n【要領】${st.d}`,
-                    lblA: "核心角度比對", lblB: "軀幹中正垂直",
+                    lblA: "上身6點對位率", lblB: "雙髖中正平衡", help: "手睜髖部定位：跟隨公仔動態節奏舒展拉伸。",
+                    init: () => ({ arm: BASE_ARM, leg: BASE_LEG, body: BASE_BODY }),
+                    target: () => {
+                        let armTemp = [...BASE_ARM];
+                        if(stepIdx === 0) armTemp = [75,80,65,40, 125,120,130,165];
+                        if(stepIdx === 1) armTemp = [75,40,70,5, 125,45,120,5];
+                        if(stepIdx === 2) armTemp = [60,90,40,110, 140,90,160,110];
+                        return { arm: armTemp, leg: BASE_LEG, body: BASE_BODY };
+                    },
                     mainIdx: realIdx, subIdx: stepIdx
                 });
             });
@@ -460,12 +619,19 @@
             }
         }
 
-        let currentGlobalIdx = 0; let currentRepetition = 0; let gameState = "TRAINING";      
-        let isHolding = false; let holdStartTime = 0; const requiredHoldTime = 1500; 
+        // --- 狀態機全局控制項 ---
+        let currentGlobalIdx = 0;
+        let currentRepetition = 0;      
+        let gameState = "TRAINING";
+        let isHolding = false;
+        let holdStartTime = 0;
+        const requiredHoldTime = 1500; 
 
         function loadStep(gIdx) {
             if (gIdx < 0 || gIdx >= ALL_32_STEPS.length) return;
-            currentGlobalIdx = gIdx; isHolding = false; currentRepetition = 0; gameState = "TRAINING";  
+            currentGlobalIdx = gIdx; isHolding = false;
+            currentRepetition = 0;   
+            gameState = "TRAINING";
             
             document.getElementById('target-card').classList.remove('rest-mode');
             document.getElementById('card-header').innerText = "【當前口訣與動作】";
@@ -480,99 +646,72 @@
             document.getElementById('benefit-text').innerText = "好處：" + cfg.benefit;
             document.getElementById('instruction-text').innerText = cfg.desc;
             document.getElementById('lbl-a').innerText = cfg.lblA; document.getElementById('lbl-b').innerText = cfg.lblB;
+            document.getElementById('help-desc').innerText = "動作對齊指南：" + cfg.help;
             document.getElementById('target-count').innerText = `第 0 / 3 次`;
-            document.getElementById('target-count').style.color = '#2980b9';
-            
+            document.getElementById('target-count').style.color = 'var(--apple-primary)';
             for (let i = 0; i < 32; i++) {
-                const dot = document.getElementById('dot-' + i);
-                if(dot) { dot.className = "dot"; if (i === gIdx) dot.classList.add("active"); if (i < gIdx) dot.classList.add("completed"); }
-            }
-            // 安全緩衝異步動畫更新
-            startDemoAnimation(
-                () => ({ arm: BASE_ARM, leg: BASE_LEG, body: BASE_BODY }),
-                () => {
-                    let armTemp = [...BASE_ARM];
-                    if (cfg.mainIdx === 0 && cfg.subIdx === 2) armTemp = [80,40,80,5, 120,40,120,5];
-                    if (cfg.mainIdx === 1 && cfg.subIdx === 1) armTemp = [50,90,10,90, 120,90,145,115];
-                    return { arm: armTemp, leg: BASE_LEG, body: BASE_BODY };
+                const dot = document.getElementById(`dot-${i}`);
+                if(dot) { 
+                    dot.className = "dot"; 
+                    if (i === gIdx) dot.classList.add("active"); 
+                    if (i < gIdx) dot.classList.add("completed");
                 }
-            );
+            }
+            startDemoAnimation(cfg.init, cfg.target);
         }
 
         function manualJump(dir) {
             let n = currentGlobalIdx + dir;
-            if (n >= 0 && n < 32) { gameState = "REST_LOCK"; isHolding = false; loadStep(n); }
-        }
-
-        function calculateAngle(p1, p2, p3) {
-            if(!p1 || !p2 || !p3) return 0;
-            let radians = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
-            let angle = Math.abs((radians * 180.0) / Math.PI); if (angle > 180.0) angle = 360 - angle; return angle;
-        }
-
-        // --- 🌟 全新升級：絕對關節角度與核心高度絕對閾值判定引擎（100%精準計數） ---
-        function runAbsolutePTAlgorithm(landmarks, mIdx, sIdx) {
-            const nose = landmarks[0];         // 1. 頭部核心點（Nose）
-            const leftShoulder = landmarks[11]; const rightShoulder = landmarks[12]; // 2 & 3. 雙肩
-            const leftElbow = landmarks[13];    const rightElbow = landmarks[14];
-            const leftWrist = landmarks[15];    const rightWrist = landmarks[16]; // 4 & 5. 雙手腕
-            const leftHip = landmarks[23];      const rightHip = landmarks[24];   // 6 & 7. 雙髖
-
-            let isPassed = false;
-            let displayValA = "等待動作";
-            let displayValB = "0°";
-
-            // 計算精準關節夾角
-            let angleL = calculateAngle(leftShoulder, leftElbow, leftWrist);
-            let angleR = calculateAngle(rightShoulder, rightElbow, rightWrist);
-            displayValB = Math.round(Math.max(angleL, angleR)) + "°";
-
-            // 🎯 第一式：兩手托天理三焦
-            if (mIdx === 0) {
-                if (sIdx === 0) { // 十指交叉在胸腹
-                    isPassed = (leftWrist.y > leftShoulder.y && leftWrist.y < leftHip.y);
-                    displayValA = isPassed ? "手腕已在胸前" : "請將雙手提起至胸前";
-                } else if (sIdx === 1) { // 翻掌向上推
-                    isPassed = (leftWrist.y < leftShoulder.y);
-                    displayValA = isPassed ? "手腕已過肩" : "請雙手翻掌向上推";
-                } else if (sIdx === 2) { // 🌟 核心定格：手腕必須絕對高過頭部（Nose），且手肘角度高舉 (>130°)
-                    isPassed = (leftWrist.y < nose.y && rightWrist.y < nose.y && angleL > 130 && angleR > 130);
-                    displayValA = (leftWrist.y < nose.y) ? "手腕已成功頂天" : "請雙手高舉過頭頂";
-                } else if (sIdx === 3) { // 劃圈落下還原
-                    isPassed = (leftWrist.y > leftHip.y && rightWrist.y > rightHip.y);
-                    displayValA = isPassed ? "雙手已安全垂放" : "請緩慢放下雙手";
-                }
-            } 
-            // 🎯 第二式：左右開弓似射雕
-            else if (mIdx === 1) {
-                if (sIdx === 0) { // 馬步抱球準備
-                    isPassed = (leftWrist.y > leftShoulder.y);
-                    displayValA = "準備下蹲";
-                } else if (sIdx === 1 || sIdx === 2) { // 🌟 核心定格：左手平推直(>135°)，右手肘拉弦深折向後
-                    isPassed = (angleL > 135 && angleR < 110);
-                    displayValA = isPassed ? "射雕姿勢已到位" : "左手推直，右手肘向後拉開";
-                    displayValB = `左:${Math.round(angleL)}° / 右:${Math.round(angleR)}°`;
-                } else if (sIdx === 3) { // 起立還原
-                    isPassed = (leftWrist.y > leftHip.y);
-                    displayValA = "已起立還原";
-                }
-            } 
-            // 🎯 其餘 3-8 式：泛用精準角度復康保底防線
-            else {
-                // 只要長者手臂或身體拉展角度大於基本舒展閾值（120°）即精準放行，絕不卡關
-                isPassed = (angleL > 120 || angleR > 120 || leftWrist.y < leftShoulder.y);
-                displayValA = isPassed ? "拉伸幅度正確" : "請跟隨公仔舒展肢體";
+            if (n >= 0 && n < 32) {
+                gameState = "REST_LOCK";
+                isHolding = false;
+                loadStep(n);
             }
-
-            return { isPassed, displayValA, displayValB };
         }
 
-        // --- AI 運動捕捉引擎核心 ---
+        // --- 上身6點 + 下身2點 精準復康矩陣演算法 ---
+        function verify8PointsMatrix(userPoints, demoTarget) {
+            if (!demoTarget || !userPoints) return { passedCount: 0, symmetryScore: 0 };
+            const uShoulderWidth = Math.abs(userPoints[11].x - userPoints[12].x) || 0.15;
+            const uTorsoHeight = Math.abs(userPoints[11].y - userPoints[23].y) || 0.3;
+
+            const pointsList = [
+                { name: "leftShoulder",  id: 11 }, { name: "rightShoulder", id: 12 }, 
+                { name: "leftElbow",     id: 13 }, { name: "rightElbow",    id: 14 }, 
+                { name: "leftWrist",     id: 15 }, { name: "rightWrist",    id: 16 }, 
+                { name: "leftHip",       id: 23 }, { name: "rightHip",      id: 24 }  
+            ];
+            let passedCount = 0;
+            let totalError = 0;
+
+            pointsList.forEach(pt => {
+                const uPt = userPoints[pt.id];
+                const dPt = demoTarget[pt.name];
+
+                if (uPt && dPt) {
+                    const errorX = Math.abs((uPt.x - userPoints[11].x) / uShoulderWidth - (dPt.x - 0.5) * 2);
+                    const errorY = Math.abs((uPt.y - userPoints[11].y) / uTorsoHeight - (dPt.y - 0.2) * 3);
+                    totalError += (errorX + errorY);
+
+                    // 寬容容錯區間（長者居家友善）
+                    if (errorX < 0.28 && errorY < 0.28) {
+                        passedCount++;
+                    }
+                }
+            });
+            let symmetryScore = Math.max(0, Math.round(100 - (totalError * 7)));
+            if (symmetryScore > 100) symmetryScore = 100;
+
+            return { passedCount, symmetryScore };
+        }
+
+        // --- AI 運動捕捉引擎 ---
         function onResults(results) {
             const loadingTag = document.getElementById('loading');
             if (loadingTag) loadingTag.style.display = 'none';
             
-            const canvasElement = document.getElementById('output_canvas'); const canvasCtx = canvasElement.getContext('2d');
+            const canvasElement = document.getElementById('output_canvas');
+            const canvasCtx = canvasElement.getContext('2d');
             canvasCtx.save(); canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
@@ -581,55 +720,56 @@
                     drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
                     drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#FF0000', lineWidth: 1, radius: 3 });
                 }
-                canvasCtx.restore(); return;
+                canvasCtx.restore();
+                return;
             }
 
             const landmarks = results.poseLandmarks;
             drawConnectors(canvasCtx, landmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
             drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 3 });
-
-            // 調用全新重構的絕對物理治療防卡關演算法
-            const cur = ALL_32_STEPS[currentGlobalIdx];
-            const { isPassed, displayValA, displayValB } = runAbsolutePTAlgorithm(landmarks, cur.mainIdx, cur.subIdx);
-
-            document.getElementById('val-a').innerText = displayValA;
-            document.getElementById('val-b').innerText = displayValB;
-
-            if (isPassed) {
-                document.getElementById('val-a').style.color = '#27ae60';
-                document.getElementById('val-b').style.color = '#27ae60';
+            
+            const { passedCount, symmetryScore } = verify8PointsMatrix(landmarks, globalDemoTargetPose);
+            document.getElementById('val-a').innerText = `${passedCount} / 8 點到位`;
+            document.getElementById('val-b').innerText = `${symmetryScore}% 正中`;
+            
+            let isStepPassed = (passedCount >= 5);
+            if (isStepPassed) {
+                document.getElementById('val-a').style.color = 'var(--apple-success)';
+                document.getElementById('val-b').style.color = 'var(--apple-success)';
                 
                 if (!isHolding) { isHolding = true; holdStartTime = Date.now(); }
                 let elapsed = Date.now() - holdStartTime;
                 let percentage = Math.min((elapsed / requiredHoldTime) * 100, 100);
                 document.getElementById('action-progress').style.width = percentage + "%";
                 document.getElementById('target-count').innerText = `第 ${currentRepetition} 次 (${(elapsed/1000).toFixed(1)}s)`;
+                if (Math.floor(elapsed / 150) % 2 === 0) playHoldTickSound(percentage);
 
                 if (elapsed >= requiredHoldTime) {
-                    isHolding = false; document.getElementById('action-progress').style.width = "0%";
+                    isHolding = false;
+                    document.getElementById('action-progress').style.width = "0%";
                     currentRepetition++; 
                     
                     if (currentRepetition < 3) {
                         playHoldTickSound(100); 
                         document.getElementById('target-count').innerText = `第 ${currentRepetition} / 3 次`;
-                        holdStartTime = Date.now() + 600; 
+                        holdStartTime = Date.now() + 600; // 0.6 秒放鬆緩衝
                     } else {
-                        playPerfectPassGroove(); 
+                        playPerfectBellSound();
                         document.getElementById('target-count').innerText = `已完成 3 / 3 次！`;
-                        document.getElementById('target-count').style.color = '#27ae60';
+                        document.getElementById('target-count').style.color = 'var(--apple-success)';
 
-                        gameState = "REST_LOCK"; // 切斷判定流
-
-                        const card = document.getElementById('target-card'); card.classList.add('rest-mode');
-                        document.getElementById('card-header').innerText = "🎉 正確！指定動作已做滿 3 次";
-                        document.getElementById('instruction-text').innerText = "做得非常好！本招動作已精準達標。\n【請完全停下休息、放鬆還原姿勢】\n3 秒後將為你自動安全切換至下一招。";
-
+                        gameState = "REST_LOCK";
+                        const card = document.getElementById('target-card');
+                        card.classList.add('rest-mode');
+                        document.getElementById('card-header').innerText = "🎉 正確！指定定點已做滿 3 次";
+                        document.getElementById('instruction-text').innerText = "做得非常好！本招核心八點已精準達標。\n【請完全停下休息、放鬆還原姿勢】\n3.5 秒後將安全為你解鎖切換至下一招。";
+                        
                         setTimeout(() => {
                             if (currentGlobalIdx < 31) {
                                 loadStep(currentGlobalIdx + 1);
                             } else {
-                                document.getElementById('instruction-text').innerText = "🎉 完美功成！全套八段錦 32 招精準動作全部圓滿！";
-                                document.getElementById('target-count').innerText = "全功圓滿！";
+                                document.getElementById('instruction-text').innerText = "🎉 完美功成！全套八段錦 32 招微動作精準定位全部圓滿！";
+                                document.getElementById('target-count').innerText = "全功大成！";
                             }
                         }, 3500);
                     }
@@ -649,7 +789,7 @@
         pose.onResults(onResults);
         
         const videoElement = document.getElementById('webcam');
-        const camera = new Camera(videoElement, { onFrame: async () => { await pose.send({ image: videoElement }); }, width: 500, height: 390 });
+        const camera = new Camera(videoElement, { onFrame: async () => { await pose.send({ image: videoElement }); }, width: 480, height: 374 });
         camera.start();
 
         window.onload = () => { buildDots(); loadStep(0); };
